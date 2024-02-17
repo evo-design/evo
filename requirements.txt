@@ -1,0 +1,9 @@
+einops
+flash_attn
+numpy
+pandas
+tokenizers
+torch
+torchaudio
+torchvision
+tqdm
