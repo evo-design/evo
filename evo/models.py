@@ -13,7 +13,6 @@ import yaml
 from .stripedhyena.src.utils import dotdict
 from .stripedhyena.src.model import StripedHyena
 from .stripedhyena.src.tokenizer import CharLevelTokenizer
-from .stripedhyena.checkpoint_conversion import checkpoint_conversion
 
 
 class NucleotideModel:
@@ -27,9 +26,9 @@ class NucleotideModel:
 class EvoModel(NucleotideModel):
     def __init__(self, ckpt_path: str, rotary_scale: int = 1, device: str = 'cuda:0'):
         if rotary_scale == 1:
-            config_path = 'stripedhyena/configs/sh_inference_config_7b.yml'
+            config_path = 'evo/stripedhyena/configs/sh_inference_config_7b.yml'
         elif rotary_scale == 16:
-            config_path = 'stripedhyena/configs/sh_inference_config_7b_rotary_scale_16.yml'
+            config_path = 'evo/stripedhyena/configs/sh_inference_config_7b_rotary_scale_16.yml'
         else:
             raise ValueError(f'Rotary scale {rotary_scale} not supported.')
 
@@ -64,10 +63,13 @@ def load_model(
         model_name: str,
         device: str = 'cuda:0',
 ) -> NucleotideModel:
+    """
+    Loads different Evo checkpoints given the model name.
+    """
     if model_name == 'evo-1_stripedhyena_pretrained_8k':
         # TODO: Handle checkpoint better.
         return EvoModel(
-            '/checkpoint/etnguyen/7b_striped_120k/global_step75000',
+            '/scratch/brianhie/dna-gen/checkpoint/evo-1_stripedhyena_pretrained_8k.pt',
             rotary_scale=1,
             device=device,
         )
@@ -75,7 +77,7 @@ def load_model(
     elif model_name == 'evo-1_stripedhyena_pretrained_131k':
         # TODO: Handle checkpoint better.
         return EvoModel(
-            '/checkpoint/etnguyen/7b_striped_131k_finetune_extension_microbe/global_step15500_mp1',
+            '/scratch/brianhie/dna-gen/checkpoint/evo-1_stripedhyena_pretrained_131k.pt',
             rotary_scale=16,
             device=device,
         )
@@ -91,36 +93,16 @@ def load_checkpoint(
         device: str = 'cuda:0',
         **kwargs: dict,
 ) -> Tuple[StripedHyena, CharLevelTokenizer]:
-
-    # Set up basic config and environment.
-    
+    """
+    Loads a checkpoint from a path and corresponding config.
+    """
     global_config = dotdict(yaml.load(open(config_path), Loader=yaml.FullLoader))
-
-    world_size = 1 #torch.cuda.device_count()
-    if verbose:
-        print('World size: ', world_size)
-    global_config.rank = 0
-    os.environ["RANK"] = "0"
-    os.environ["WORLD_SIZE"] = str(world_size)
-    os.environ["MASTER_ADDR"] = "localhost"
-
-    device_num = None
-    if ':' in device:
-        try:
-            device_num = int(device.split(':')[-1])
-        except ValueError:
-            pass
-    os.environ["MASTER_PORT"] = str(6200 + (device_num if device_num is not None else 0))
-
-    try:
-        torch.distributed.init_process_group(backend="nccl")
-    except RuntimeError as e:
-        sys.stderr.write(f'WARNING: {str(e)}\n')
-    #initialize_model_parallel(1) # This needs to occur within the model's global context.
 
     model = StripedHyena(global_config)
     tokenizer = CharLevelTokenizer(512)
+
     model.load_state_dict(torch.load(ckpt_path), strict=True)
+
     model.to_bfloat16_except_poles_residues()
 
     return model, tokenizer
