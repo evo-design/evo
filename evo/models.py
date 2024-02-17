@@ -24,7 +24,7 @@ class NucleotideModel:
         raise NotImplementedError()
 
 
-class DevoModel(NucleotideModel):
+class EvoModel(NucleotideModel):
     def __init__(self, ckpt_path: str, rotary_scale: int = 1, device: str = 'cuda:0'):
         if rotary_scale == 1:
             config_path = 'stripedhyena/configs/sh_inference_config_7b.yml'
@@ -64,17 +64,17 @@ def load_model(
         model_name: str,
         device: str = 'cuda:0',
 ) -> NucleotideModel:
-    if model_name == 'devo':
+    if model_name == 'evo-1_stripedhyena_pretrained_8k':
         # TODO: Handle checkpoint better.
-        return DevoModel(
+        return EvoModel(
             '/checkpoint/etnguyen/7b_striped_120k/global_step75000',
             rotary_scale=1,
             device=device,
         )
 
-    elif model_name == 'devo_131k':
+    elif model_name == 'evo-1_stripedhyena_pretrained_131k':
         # TODO: Handle checkpoint better.
-        return DevoModel(
+        return EvoModel(
             '/checkpoint/etnguyen/7b_striped_131k_finetune_extension_microbe/global_step15500_mp1',
             rotary_scale=16,
             device=device,
