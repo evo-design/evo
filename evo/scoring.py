@@ -131,26 +131,3 @@ def positional_entropies(
     )
 
     return sequence_entropies
-
-
-if __name__ == '__main__':
-    device = 'cuda:0'
-    ckpt_path = '/checkpoint/etnguyen/7b_striped_120k/global_step63500/'
-
-    model, tokenizer = load_checkpoint(ckpt_path)
-    model = model.to(device)
-    model = model.eval()
-
-    seqs = [
-        'TACTGTTATCGATCCGGTCGAAAAACTGCTGGCAGTGGGGCATTACCTCGAATCTACCGTCGATATTGCT\0',
-        'ATCCGGTCGAAAACTGCATATTGGCAGTGGGGCACGAAAACTGCATATTGGCAGTGTTACCCGTCGTCGAATCTTACTGTTATCGAACTGCT\0',
-        'ATCCGGTCGAAAACTGCATATTGGCAGTGGGGCATTACCC\0',
-    ]
-
-    scores = score_sequences(seqs, model, tokenizer, device=device)
-
-    print(scores)
-
-    entropies = positional_entropies(seqs, model, tokenizer, device=device)
-
-    print(entropies)
