@@ -1,13 +1,7 @@
-from contextlib import contextmanager
-import io
-from functools import partial
-import numpy as np
 import os
 import requests
-import sys
-import tarfile
 import torch
-from typing import List, Tuple, Union
+from typing import List, Tuple
 import yaml
 
 from .stripedhyena.src.utils import dotdict
@@ -15,25 +9,53 @@ from .stripedhyena.src.model import StripedHyena
 from .stripedhyena.src.tokenizer import CharLevelTokenizer
 
 
-class NucleotideModel:
-    def __init__(self):
-        pass
-
-    def score_batch(self, seqs: List[str], batch_size: int = 1) -> List[float]:
-        raise NotImplementedError()
+VALID_MODEL_NAMES = [
+    'evo-1_stripedhyena_pretrained_8k',
+    'evo-1_stripedhyena_pretrained_131k',
+]
 
 
-class EvoModel(NucleotideModel):
-    def __init__(self, ckpt_path: str, rotary_scale: int = 1, device: str = 'cuda:0'):
-        if rotary_scale == 1:
+class EvoModel:
+    def __init__(self, model_name: str, device: str = 'cuda:0'):
+        """
+        Loads an Evo model checkpoint given a model name.
+        If the checkpoint does not exist, automatically downloads the model to
+        `~/.cache/torch/hub/checkpoints`.
+        """
+
+        # Download checkpoint.
+
+        home_directory = os.path.expanduser('~')
+        download_url = f'https://TODO/checkpoints/{model_name}.pt'
+        cache_dir = f'{home_directory}/.cache/torch/hub/checkpoints'
+        checkpoint_path = f'{cache_dir}/{model_name}.pt'
+
+        if not os.path.exists(checkpoint_path):
+            print(f'Downloading {download_url} to {cache_dir}...')
+
+            if not os.path.exists(cache_dir):
+                os.makedirs(cache_dir, exist_ok=True)
+
+            response = requests.get(download_url, stream=True)
+            if response.status_code == 200:
+                with open(checkpoint_path, 'wb') as f:
+                    f.write(response.raw.read())
+            else:
+                raise Exception(f'Failed to download the file. Status code: {response.status_code}')
+
+        # Load correct config file.
+
+        if model_name == 'evo-1_stripedhyena_pretrained_8k':
             config_path = 'evo/stripedhyena/configs/sh_inference_config_7b.yml'
-        elif rotary_scale == 16:
+        elif model_name == 'evo-1_stripedhyena_pretrained_131k':
             config_path = 'evo/stripedhyena/configs/sh_inference_config_7b_rotary_scale_16.yml'
         else:
-            raise ValueError(f'Rotary scale {rotary_scale} not supported.')
+            raise ValueError(f'Invalid model name {model_name}.')
+
+        # Load model.
 
         self.model, self.tokenizer = load_checkpoint(
-            ckpt_path,
+            checkpoint_path,
             model_type='stripedhyena',
             config_path=config_path,
             device=device,
@@ -62,28 +84,21 @@ class EvoModel(NucleotideModel):
 def load_model(
         model_name: str,
         device: str = 'cuda:0',
-) -> NucleotideModel:
+) -> EvoModel:
     """
     Loads different Evo checkpoints given the model name.
     """
-    if model_name == 'evo-1_stripedhyena_pretrained_8k':
-        # TODO: Handle checkpoint better.
+    if model_name in VALID_MODEL_NAMES:
         return EvoModel(
-            '/scratch/brianhie/dna-gen/checkpoint/evo-1_stripedhyena_pretrained_8k.pt',
-            rotary_scale=1,
-            device=device,
-        )
-
-    elif model_name == 'evo-1_stripedhyena_pretrained_131k':
-        # TODO: Handle checkpoint better.
-        return EvoModel(
-            '/scratch/brianhie/dna-gen/checkpoint/evo-1_stripedhyena_pretrained_131k.pt',
-            rotary_scale=16,
+            model_name,
             device=device,
         )
 
     else:
-        raise ValueError(f'Invalid model name {model_name}.')
+        raise ValueError(
+            f'Invalid model name {model_name}. '
+            f'Should be one of: {", ".join(VALID_MODEL_NAMES)}.'
+        )
 
 
 def load_checkpoint(
