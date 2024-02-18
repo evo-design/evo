@@ -433,27 +433,3 @@ class StripedHyena(nn.Module):
         for k, p in self.named_parameters():
             if "poles" not in k and "residues" not in k:
                 p.data = p.data.to(torch.bfloat16)
-
-    def load_from_split_converted_state_dict(self, path):
-        
-        embedding_weight = torch.load(path + "/layer_00.pt")["word_embeddings.weight"]
-        self.embedding_layer.weight = nn.Parameter(embedding_weight.to(self.embedding_layer.weight.dtype))
-        
-        if self.config.get("final_norm", False) is not None:
-            idx = len(self.blocks) + 1
-            final_norm_scale = torch.load(path + f"/layer_{idx:02d}.pt")["norm.scale"]
-            self.norm.scale = nn.Parameter(final_norm_scale.to(self.norm.scale.dtype))
-            
-        if not self.config.get("tie_embeddings", True):
-            idx = len(self.blocks) + 2
-            embedding_weight = torch.load(path + f"/layer_{idx:02d}.pt")["word_embeddings.weight"]
-            self.unembed.weight = nn.Parameter(embedding_weight.to(self.unembed.weight.dtype))
-            
-
-        for block_idx, block in enumerate(self.blocks):
-            # strict = False if type(block) == ParallelGatedConvBlock else True 
-            # some blocks (optionally) go through a round of conv distillation on some parameters
-            strict = True  # safer to be strict and account for every layer
-            
-            loaded_dict = torch.load(path + f"/layer_{block_idx + 1:02d}.pt")                
-            block.load_state_dict(loaded_dict, strict=strict)
