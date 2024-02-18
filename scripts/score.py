@@ -1,3 +1,14 @@
+"""
+Usage: python scripts/score.py \
+           --input-fasta examples/example_seqs.fasta \
+           --output-tsv scores.tsv \
+           --model-name evo-1_stripedhyena_pretrained_8k \
+           --device cuda:0
+
+Scores sequences in an input FASTA file according to the joint log-likelihood of the
+sequences over all tokens. Outputs these log-likelihood scores to a tab-separated
+values file.
+"""
 import argparse
 from Bio import SeqIO
 import pandas as pd

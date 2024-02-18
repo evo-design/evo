@@ -1,3 +1,8 @@
+"""
+Usage: python scripts/example_inference.py
+
+Computes logits for a single sequence or with a batch of sequences.
+"""
 import torch
 
 from evo import Evo
