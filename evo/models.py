@@ -9,7 +9,7 @@ from .stripedhyena.src.model import StripedHyena
 from .stripedhyena.src.tokenizer import CharLevelTokenizer
 
 
-VALID_MODEL_NAMES = [
+MODEL_NAMES = [
     'evo-1_stripedhyena_pretrained_8k',
     'evo-1_stripedhyena_pretrained_131k',
 ]
@@ -23,10 +23,10 @@ class Evo:
         `~/.cache/torch/hub/checkpoints`.
         """
 
-        if model_name not in VALID_MODEL_NAMES:
+        if model_name not in MODEL_NAMES:
             raise ValueError(
                 f'Invalid model name {model_name}. Should be one of: '
-                f'{", ".join(VALID_MODEL_NAMES)}.'
+                f'{", ".join(MODEL_NAMES)}.'
             )
 
         # Download checkpoint.
@@ -56,7 +56,10 @@ class Evo:
         elif model_name == 'evo-1_stripedhyena_pretrained_131k':
             config_path = 'evo/stripedhyena/configs/sh_inference_config_7b_rotary_scale_16.yml'
         else:
-            raise ValueError(f'Invalid model name {model_name}.')
+            raise ValueError(
+                f'Invalid model name {model_name}. Should be one of: '
+                f'{", ".join(MODEL_NAMES)}.'
+            )
 
         # Load model.
 
