@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from .cache import InferenceParams, RecurrentInferenceParams
 from .engine import HyenaInferenceEngine
 from .layers import ParallelGatedMLP, RMSNorm, VocabParallelEmbedding
-from .utils import column_split, print_rank_0
+from .utils import column_split
 
 try:
     from flash_attn.modules.mha import MHA
@@ -379,7 +379,6 @@ class StripedHyena(nn.Module):
         return x, None
 
     def initialize_inference_params(self):
-        print_rank_0("Initializing inference params...")
         inference_params_dict = {
             "mha": InferenceParams(
                 max_seqlen=self.config.get("max_seqlen", 8192),
@@ -399,7 +398,6 @@ class StripedHyena(nn.Module):
             if type(block) == ParallelGatedConvBlock:
                 if type(block.filter) == ParallelHyenaFilter:
                     L = block.filter.long_fir_threshold or L
-                    print_rank_0(f"Precomputing filters, L={L}...")
 
                     filter_dtype = torch.float16 if L >= 2048 else torch.float32
 
@@ -417,7 +415,6 @@ class StripedHyena(nn.Module):
         for block_idx, block in enumerate(self.blocks):
             if type(block) == ParallelGatedConvBlock:
                 if type(block.filter) == ParallelHyenaFilter:
-                    print(f"Loading poles and residues for block {block_idx}")
                     poles = torch.load(path + f"/approx_poles_{block_idx+1}.pt", map_location="cpu")
                     poles = torch.view_as_real(poles)
                     residues = torch.load(path + f"/approx_residues_{block_idx+1}.pt", map_location="cpu")
@@ -439,29 +436,21 @@ class StripedHyena(nn.Module):
 
     def load_from_split_converted_state_dict(self, path):
         
-        print("Loading from split converted state dict")
-        
         embedding_weight = torch.load(path + "/layer_00.pt")["word_embeddings.weight"]
         self.embedding_layer.weight = nn.Parameter(embedding_weight.to(self.embedding_layer.weight.dtype))
-        
-        print("Loading embedding weight ok")
         
         if self.config.get("final_norm", False) is not None:
             idx = len(self.blocks) + 1
             final_norm_scale = torch.load(path + f"/layer_{idx:02d}.pt")["norm.scale"]
             self.norm.scale = nn.Parameter(final_norm_scale.to(self.norm.scale.dtype))
             
-            print("loading final norm ok")
-        
         if not self.config.get("tie_embeddings", True):
             idx = len(self.blocks) + 2
             embedding_weight = torch.load(path + f"/layer_{idx:02d}.pt")["word_embeddings.weight"]
             self.unembed.weight = nn.Parameter(embedding_weight.to(self.unembed.weight.dtype))
             
-            print("loading unembed weight ok")
 
         for block_idx, block in enumerate(self.blocks):
-            print("loading block {}...".format(block_idx))
             # strict = False if type(block) == ParallelGatedConvBlock else True 
             # some blocks (optionally) go through a round of conv distillation on some parameters
             strict = True  # safer to be strict and account for every layer

@@ -15,13 +15,19 @@ VALID_MODEL_NAMES = [
 ]
 
 
-class EvoModel:
+class Evo:
     def __init__(self, model_name: str, device: str = 'cuda:0'):
         """
         Loads an Evo model checkpoint given a model name.
         If the checkpoint does not exist, automatically downloads the model to
         `~/.cache/torch/hub/checkpoints`.
         """
+
+        if model_name not in VALID_MODEL_NAMES:
+            raise ValueError(
+                f'Invalid model name {model_name}. Should be one of: '
+                f'{", ".join(VALID_MODEL_NAMES)}.'
+            )
 
         # Download checkpoint.
 
@@ -79,26 +85,6 @@ class EvoModel:
             scores.extend(batch_scores)
 
         return scores
-
-
-def load_model(
-        model_name: str,
-        device: str = 'cuda:0',
-) -> EvoModel:
-    """
-    Loads different Evo checkpoints given the model name.
-    """
-    if model_name in VALID_MODEL_NAMES:
-        return EvoModel(
-            model_name,
-            device=device,
-        )
-
-    else:
-        raise ValueError(
-            f'Invalid model name {model_name}. '
-            f'Should be one of: {", ".join(VALID_MODEL_NAMES)}.'
-        )
 
 
 def load_checkpoint(
