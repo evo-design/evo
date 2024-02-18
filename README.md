@@ -19,8 +19,8 @@ We provide the following model checkpoints:
 ## Contents
 
 - [Setup](#setup)
- - [Requirements](#requirements)
- - [Installation](#installation)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
 - [Usage](#usage)
 - [Web API](#web-api)
 - [HuggingFace](#hugging-face)
