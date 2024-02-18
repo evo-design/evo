@@ -1,5 +1,31 @@
 # Evo: DNA foundation modeling from molecular to genome scale
 
+Tasks remaining:
+- [ ] Upload checkpoints to the web and finalize auto downloading code.
+- [ ] Verify logits are the same as private repo.
+- [ ] Package and upload to PyPI.
+- [ ] Update with preprint info, blog info, Together API info, and HF info.
+
+Evo is a biological foundation model capable of long-context modeling and design.
+Evo uses the (StripedHyena architecture)[https://github.com/togethercomputer/stripedhyena] to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
+Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-genome dataset containing 260 billion tokens.
+
+Technical detail about Devo can be found in our preprint and the accompanying blog.
+
+We provide the following model checkpoints:
+- `evo-1_stripedhyena_pretrained_8k`: A model pretrained with 8k context. We use this model as the base model for molecular-scale finetuning tasks.
+- `evo-1_stripedhyena_pretrained_131k`: A model pretrained with 131k context using `evo-1_stripedhyena_pretrained_8k` as the base model. We use this model to reason about and generate sequences at the genome scale.
+
+## Contents
+
+- (Setup)[#setup]
+ - (Requirements)[#requirements]
+ - (Installation)[#installation]
+- (Usage)[#usage]
+- (Web API)[#web-api]
+- (HuggingFace)[#hugging-face]
+- (Citation)[#citation]
+
 ## Setup
 
 ### Requirements
@@ -68,3 +94,15 @@ python scripts/score.py \
     --model-name evo-1_stripedhyena_pretrained_8k \
     --device cuda:0
 ```
+
+## Web API
+
+We are working on integration with (Together.AI)[https://www.together.ai/] on a web API that will provide logits and sampling functionality.
+
+## HuggingFace integration
+
+We are working on integration with (HuggingFace)[https://huggingface.co/].
+
+## Citation
+
+We will make a preprint publicly available soon.
