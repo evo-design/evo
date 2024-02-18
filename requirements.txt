@@ -1,0 +1,6 @@
+einops
+flash_attn
+numpy
+pandas
+tokenizers
+tqdm

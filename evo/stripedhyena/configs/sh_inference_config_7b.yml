@@ -1,0 +1,39 @@
+vocab_size: 512
+hidden_size: 4096
+num_filters: 4096
+max_sequence_len: 8192
+attn_layer_idxs: [8, 16, 24]
+hyena_layer_idxs: [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 31]
+num_layers: 32
+short_filter_length: 3  # change name
+num_attention_heads: 32
+short_filter_bias: True
+mlp_init_method: torch.nn.init.zeros_
+mlp_output_init_method: torch.nn.init.zeros_
+eps: 1.0e-6 # 0.00001
+state_size: 8  # state size
+inner_size_multiple_of: 16  # for gated mlp.  for SH 7B it's 16 (default)
+smeared_gqa: False  # what is this???
+make_vocab_size_divisible_by: 8
+log_intermediate_values: False
+proj_groups: 1  # dont use
+hyena_filter_groups: 1  # dont use
+split_k0: True  # dummy
+model_parallel_size: 1
+pile_parallel_size: 1
+tie_embeddings: True  # we do use
+inner_mlp_size: null  # set to None, so it auto-fills
+mha_out_proj_bias: True
+qkv_proj_bias: True
+final_norm: True  # need, it's post norm true
+rng_fork: False
+use_flash_attn: True
+use_flash_rmsnorm: False  # not sure about this one, may not matter
+use_flash_depthwise: False  # dont use
+use_flashfft: False  # dont use
+column_split: True  # False  Doesnt seem to make a diff
+inference_mode: True
+tokenizer_type: CharLevelTokenizer  # HFAutoTokenizer
+# vocab_file: "/mnt/spring/tmp/recurrent-inference/tokenizers/mistral/"  # look into savanna tokenizer init
+prefill_style: fft  # need to try out
+mlp_activation: gelu
