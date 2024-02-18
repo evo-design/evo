@@ -74,7 +74,7 @@ print('Shape (batch, length, vocab): ', logits.shape)
 ```
 Examples of batched inference can be found in [`scripts/example_inference.py`](scripts/example_inference.py).
 
-We provide an example script for how to prompt the model and sample a set of sequences given the prompt.
+We provide an [example script](scripts/generate.py) for how to prompt the model and sample a set of sequences given the prompt.
 ```bash
 python scripts/generate.py \
     --model-name evo-1_stripedhyena_pretrained_8k \
@@ -86,7 +86,7 @@ python scripts/generate.py \
     --device cuda:0
 ```
 
-We also provide an example script for using the model to score the log-likelihoods of a set of sequences.
+We also provide an [example script](scripts/generate.py) for using the model to score the log-likelihoods of a set of sequences.
 ```bash
 python scripts/score.py \
     --input-fasta examples/example_seqs.fasta \
