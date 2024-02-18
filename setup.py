@@ -15,7 +15,7 @@ sources = {
 }
 
 setup(
-    name='evofoundation',
+    name='evo-model',
     version=version,
     description='DNA foundation modeling from molecular to genome scale.',
     long_description=readme,

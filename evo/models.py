@@ -70,22 +70,6 @@ class Evo:
 
         self.device = device
 
-    def score_sequences(self, seqs: List[str], batch_size: int = 1) -> List[float]:
-        from .scoring import score_sequences
-
-        scores = []
-        for i in range(0, len(seqs), batch_size):
-            batch_seqs = seqs[i:i + batch_size]
-            batch_scores = score_sequences(
-                batch_seqs,
-                self.model,
-                self.tokenizer,
-                device=self.device,
-            )
-            scores.extend(batch_scores)
-
-        return scores
-
 
 def load_checkpoint(
         ckpt_path: str,
