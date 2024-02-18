@@ -1,3 +1,16 @@
+"""
+Usage: python scripts/generate.py \
+           --model-name evo-1_stripedhyena_pretrained_8k \
+           --prompt ACGT \
+           --n-samples 10 \
+           --n-tokens 100 \
+           --temperature 1. \
+           --top-k 4 \
+           --device cuda:0
+
+Generates a sequence given a prompt. Also enables the user to specify various basic
+sampling parameters.
+"""
 import argparse
 
 from evo import Evo, generate
