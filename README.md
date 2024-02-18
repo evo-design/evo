@@ -12,8 +12,10 @@ Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-g
 Technical details about Evo can be found in our preprint and our accompanying blog post.
 
 We provide the following model checkpoints:
-- `evo-1_stripedhyena_pretrained_8k`: A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks.
-- `evo-1_stripedhyena_pretrained_131k`: A model pretrained with 131,072 context using `evo-1_stripedhyena_pretrained_8k` as the base model. We use this model to reason about and generate sequences at the genome scale.
+| Checkpoint Name                        | Description |
+|----------------------------------------|-------------|
+| `evo-1_stripedhyena_pretrained_8k`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
+| `evo-1_stripedhyena_pretrained_131k`   | A model pretrained with 131,072 context using `evo-1_stripedhyena_pretrained_8k` as the base model. We use this model to reason about and generate sequences at the genome scale. |
 
 ## Contents
 
