@@ -22,7 +22,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Team Evo',
     url='https://github.com/evo-design/evo',
-    license='MIT',
+    license='Apache-2.0',
     packages=sources.keys(),
     package_dir=sources,
     install_requires=requirements,
