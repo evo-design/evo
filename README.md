@@ -7,10 +7,10 @@ Tasks remaining:
 - [ ] Update with preprint info, blog info, Together API info, and HF info.
 
 Evo is a biological foundation model capable of long-context modeling and design.
-Evo uses the (StripedHyena architecture)[https://github.com/togethercomputer/stripedhyena] to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
+Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
 Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-genome dataset containing 260 billion tokens.
 
-Technical detail about Devo can be found in our preprint and the accompanying blog.
+Technical details about Evo can be found in our preprint and the accompanying blog.
 
 We provide the following model checkpoints:
 - `evo-1_stripedhyena_pretrained_8k`: A model pretrained with 8k context. We use this model as the base model for molecular-scale finetuning tasks.
@@ -18,22 +18,22 @@ We provide the following model checkpoints:
 
 ## Contents
 
-- (Setup)[#setup]
- - (Requirements)[#requirements]
- - (Installation)[#installation]
-- (Usage)[#usage]
-- (Web API)[#web-api]
-- (HuggingFace)[#hugging-face]
-- (Citation)[#citation]
+- [Setup](#setup)
+ - [Requirements](#requirements)
+ - [Installation](#installation)
+- [Usage](#usage)
+- [Web API](#web-api)
+- [HuggingFace](#hugging-face)
+- [Citation](#citation)
 
 ## Setup
 
 ### Requirements
 
-Evo uses (FlashAttention-2)[https://github.com/Dao-AILab/flash-attention], which may not work on all GPU architectures.
-Please consult the (FlashAttention GitHub repository)[https://github.com/Dao-AILab/flash-attention#installation-and-features] for the current list of supported GPUs.
+Evo uses [FlashAttention-2](https://github.com/Dao-AILab/flash-attention), which may not work on all GPU architectures.
+Please consult the [FlashAttention GitHub repository](https://github.com/Dao-AILab/flash-attention#installation-and-features) for the current list of supported GPUs.
 
-Evo also uses PyTorch. Make sure the correct (PyTorch version is installed)[https://pytorch.org/] on your system.
+Evo also uses PyTorch. Make sure the correct [PyTorch version is installed](https://pytorch.org/) on your system.
 
 ### Installation
 
@@ -50,7 +50,7 @@ pip install .
 
 ## Usage
 
-You can download Devo and use it locally through the Python API. For example:
+You can download Evo and use it locally through the Python API. For example:
 ```python
 from evo import Evo
 import torch
@@ -97,11 +97,11 @@ python scripts/score.py \
 
 ## Web API
 
-We are working on integration with (Together.AI)[https://www.together.ai/] on a web API that will provide logits and sampling functionality.
+We are working with [Together.AI](https://www.together.ai/) on a web API that will provide logits and sampling functionality for Evo.
 
 ## HuggingFace integration
 
-We are working on integration with (HuggingFace)[https://huggingface.co/].
+We are working on integration with [HuggingFace](https://huggingface.co/).
 
 ## Citation
 
