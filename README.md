@@ -49,6 +49,9 @@ cd evo/
 pip install .
 ```
 
+We recommend that you install the PyTorch library first, before installing all other dependencies (due to dependency issues of the `flash-attn` library; see, e.g., this [issue](https://github.com/Dao-AILab/flash-attention/issues/246)).
+
+
 ## Usage
 
 Below is an example of how to download Evo and use it locally through the Python API.
