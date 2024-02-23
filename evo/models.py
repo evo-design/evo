@@ -1,12 +1,12 @@
 import os
 import requests
 import torch
-from typing import List, Tuple
+from typing import Tuple
 import yaml
 
-from .stripedhyena.src.utils import dotdict
-from .stripedhyena.src.model import StripedHyena
-from .stripedhyena.src.tokenizer import CharLevelTokenizer
+from stripedhyena.utils import dotdict
+from stripedhyena.model import StripedHyena
+from stripedhyena.tokenizer import CharLevelTokenizer
 
 
 MODEL_NAMES = [
@@ -16,7 +16,7 @@ MODEL_NAMES = [
 
 
 class Evo:
-    def __init__(self, model_name: str, device: str = 'cuda:0'):
+    def __init__(self, model_name: str=MODEL_NAMES[0], device: str = 'cuda:0'):
         """
         Loads an Evo model checkpoint given a model name.
         If the checkpoint does not exist, automatically downloads the model to
@@ -52,9 +52,9 @@ class Evo:
         # Load correct config file.
 
         if model_name == 'evo-1_stripedhyena_pretrained_8k':
-            config_path = 'evo/stripedhyena/configs/sh_inference_config_7b.yml'
+            config_path = 'evo/configs/sh_inference_config_7b.yml'
         elif model_name == 'evo-1_stripedhyena_pretrained_131k':
-            config_path = 'evo/stripedhyena/configs/sh_inference_config_7b_rotary_scale_16.yml'
+            config_path = 'evo/configs/sh_inference_config_7b_rotary_scale_16.yml'
         else:
             raise ValueError(
                 f'Invalid model name {model_name}. Should be one of: '
@@ -69,17 +69,15 @@ class Evo:
             config_path=config_path,
             device=device,
         )
-        self.model = self.model.to(device).eval()
 
         self.device = device
 
 
 def load_checkpoint(
-        ckpt_path: str,
-        config_path: str = './evo/stripedhyena/configs/sh_inference_config_7b.yml',
-        verbose: int = 0,
-        device: str = 'cuda:0',
-        **kwargs: dict,
+    ckpt_path: str,
+    config_path: str = './evo/stripedhyena/configs/sh_inference_config_7b.yml',
+    device: str = 'cuda:0',
+    *args, **kwargs,
 ) -> Tuple[StripedHyena, CharLevelTokenizer]:
     """
     Loads a checkpoint from a path and corresponding config.
@@ -92,5 +90,7 @@ def load_checkpoint(
     model.load_state_dict(torch.load(ckpt_path), strict=True)
 
     model.to_bfloat16_except_poles_residues()
+
+    model = model.to(device)
 
     return model, tokenizer
