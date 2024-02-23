@@ -1,5 +1,5 @@
 """
-Usage: python scripts/example_inference.py
+Usage: python -m scripts.example_inference
 
 Computes logits for a single sequence or with a batch of sequences.
 """
@@ -7,7 +7,10 @@ import torch
 
 from evo import Evo
 
-if __name__ == '__main__':
+def main():
+
+    # Load model.
+
     device = 'cuda:0'
 
     evo_model = Evo('evo-1_stripedhyena_pretrained_8k')
@@ -47,4 +50,7 @@ if __name__ == '__main__':
 
     print('Batch logits: ', logits)
     print('Batch shape (batch, length, vocab): ', logits.shape)
-    
+
+
+if __name__ == '__main__':
+    main()    
