@@ -1,5 +1,5 @@
 """
-Usage: python scripts/generate.py \
+Usage: python -m scripts/generate \
            --model-name evo-1_stripedhyena_pretrained_8k \
            --prompt ACGT \
            --n-samples 10 \
@@ -15,12 +15,15 @@ import argparse
 
 from evo import Evo, generate
 
-if __name__ == '__main__':
+
+def main():
+
+    # Parse arguments.
     parser = argparse.ArgumentParser(description='Generate sequences using the Evo model.')
 
     parser.add_argument('--model-name', type=str, default='evo-1_stripedhyena_pretrained_8k', help='Evo model name')
     parser.add_argument('--prompt', type=str, default='ACGT', help='Prompt for generation')
-    parser.add_argument('--n-samples', type=int, default=10, help='Number of sequences to sample at once')
+    parser.add_argument('--n-samples', type=int, default=3, help='Number of sequences to sample at once')
     parser.add_argument('--n-tokens', type=int, default=100, help='Number of tokens to generate')
     parser.add_argument('--temperature', type=float, default=1.0, help='Temperature during sampling')
     parser.add_argument('--top-k', type=int, default=4, help='Top K during sampling')
@@ -32,6 +35,8 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', type=int, default=1, help='Verbosity level')
 
     args = parser.parse_args()
+
+    # Load model.
 
     evo_model = Evo(args.model_name)
     model, tokenizer = evo_model.model, evo_model.tokenizer
@@ -56,3 +61,7 @@ if __name__ == '__main__':
         device=args.device,
         verbose=args.verbose,
     )
+
+
+if __name__ == '__main__':
+    main()
