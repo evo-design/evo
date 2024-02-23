@@ -1,5 +1,5 @@
 """
-Usage: python scripts/score.py \
+Usage: python -m scripts.score \
            --input-fasta examples/example_seqs.fasta \
            --output-tsv scores.tsv \
            --model-name evo-1_stripedhyena_pretrained_8k \
