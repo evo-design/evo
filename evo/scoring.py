@@ -1,18 +1,16 @@
 import numpy as np
-import sys
 import torch
 from typing import List, Tuple
 
-from .models import load_checkpoint
-from .stripedhyena.src.model import StripedHyena
-from .stripedhyena.src.tokenizer import CharLevelTokenizer
+from stripedhyena.model import StripedHyena
+from stripedhyena.tokenizer import CharLevelTokenizer
 
 
 def prepare_batch(
-        seqs: List[str],
-        tokenizer: CharLevelTokenizer,
-        prepend_bos: bool = True,
-        device: str = 'cuda:0'
+    seqs: List[str],
+    tokenizer: CharLevelTokenizer,
+    prepend_bos: bool = True,
+    device: str = 'cuda:0'
 ) -> Tuple[torch.Tensor, List[int]]:
     """
     Takes in a list of sequences, tokenizes them, and puts them in a tensor batch.
@@ -62,11 +60,11 @@ def logits_to_logprobs(
 
 
 def score_sequences(
-        seqs: List[str],
-        model: StripedHyena,
-        tokenizer: CharLevelTokenizer,
-        reduce_method: str = 'mean',
-        device: str = 'cuda:0',
+    seqs: List[str],
+    model: StripedHyena,
+    tokenizer: CharLevelTokenizer,
+    reduce_method: str = 'mean',
+    device: str = 'cuda:0',
 ) -> List[float]:
     """
     Computes the model log-likelihood scores for sequences in `seqs`.
@@ -99,10 +97,10 @@ def score_sequences(
 
 
 def positional_entropies(
-        seqs: List[str],
-        model: StripedHyena,
-        tokenizer: CharLevelTokenizer,
-        device: str = 'cuda:0',
+    seqs: List[str],
+    model: StripedHyena,
+    tokenizer: CharLevelTokenizer,
+    device: str = 'cuda:0',
 ) -> List[np.array]:
     """
     Computes the positional entropies for sequences in `seqs`.
