@@ -18,7 +18,7 @@ from evo import Evo, generate
 
 def main():
 
-    # Parse arguments.
+    # Parse command-line arguments.
     parser = argparse.ArgumentParser(description='Generate sequences using the Evo model.')
 
     parser.add_argument('--model-name', type=str, default='evo-1_stripedhyena_pretrained_8k', help='Evo model name')
