@@ -1,1 +1,0 @@
-This code is modified from https://github.com/togethercomputer/stripedhyena.
