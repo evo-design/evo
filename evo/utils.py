@@ -8,27 +8,27 @@ NTs = 'ACGT'
 AAs = 'ACDEFGHIKLMNPQRSTVWY'
 
 AA_TO_CODON = {
- '*': ['TAA', 'TAG', 'TGA'],  # Stop.
- 'A': ['GCT', 'GCC', 'GCA', 'GCG'],  # Ala.
- 'C': ['TGT', 'TGC'],  # Cys.
- 'D': ['GAT', 'GAC'],  # Asp.
- 'E': ['GAA', 'GAG'],  # Glu.
- 'F': ['TTT', 'TTC'],  # Phe.
- 'G': ['GGU', 'GGC', 'GGA', 'GGG'],  # Gly.
- 'H': ['CAT', 'CAC'],  # His.
- 'I': ['ATT', 'ATC', 'ATA'],  # Ile.
- 'K': ['AAA', 'AAG'],  # Lys.
- 'L': ['TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'],  # Leu.
- 'M': ['ATG'],  # Met.
- 'N': ['AAT', 'AAC'],  # Asn.
- 'P': ['CCT', 'CCC', 'CCA', 'CCG'],  # Pro.
- 'Q': ['CAA', 'CAG'],  # Gln.
- 'R': ['CGT', 'CGC', 'CGA', 'CGG', 'AGA', 'AGG'],  # Arg.
- 'S': ['TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'],  # Ser.
- 'T': ['ACT', 'ACC', 'ACA', 'ACG'],  # Thr.
- 'V': ['GTT', 'GTC', 'GTA', 'GTG'],  # Val.
- 'W': ['TGG'],  # Trp.
- 'Y': ['TAT', 'TAC'],  # Tyr.
+    '*': ['TAA', 'TAG', 'TGA'],  # Stop.
+    'A': ['GCT', 'GCC', 'GCA', 'GCG'],  # Ala.
+    'C': ['TGT', 'TGC'],  # Cys.
+    'D': ['GAT', 'GAC'],  # Asp.
+    'E': ['GAA', 'GAG'],  # Glu.
+    'F': ['TTT', 'TTC'],  # Phe.
+    'G': ['GGU', 'GGC', 'GGA', 'GGG'],  # Gly.
+    'H': ['CAT', 'CAC'],  # His.
+    'I': ['ATT', 'ATC', 'ATA'],  # Ile.
+    'K': ['AAA', 'AAG'],  # Lys.
+    'L': ['TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'],  # Leu.
+    'M': ['ATG'],  # Met.
+    'N': ['AAT', 'AAC'],  # Asn.
+    'P': ['CCT', 'CCC', 'CCA', 'CCG'],  # Pro.
+    'Q': ['CAA', 'CAG'],  # Gln.
+    'R': ['CGT', 'CGC', 'CGA', 'CGG', 'AGA', 'AGG'],  # Arg.
+    'S': ['TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'],  # Ser.
+    'T': ['ACT', 'ACC', 'ACA', 'ACG'],  # Thr.
+    'V': ['GTT', 'GTC', 'GTA', 'GTG'],  # Val.
+    'W': ['TGG'],  # Trp.
+    'Y': ['TAT', 'TAC'],  # Tyr.
 }
 
 CODON_TO_AA = {
@@ -159,10 +159,10 @@ def parse_hmmsearch_output(output_path: str) -> pd.DataFrame:
 
 
 def permutation_test(
-        score_func: Callable[[np.array, np.array], float],
-        x1: np.array,
-        x2: np.array,
-        n_permutations: int = 100_000,
+    score_func: Callable[[np.array, np.array], float],
+    x1: np.array,
+    x2: np.array,
+    n_permutations: int = 100_000,
 ) -> float:
     """
     Returns a permutation-based P value. Computes the null distribution by
