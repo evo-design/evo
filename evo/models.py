@@ -16,7 +16,7 @@ MODEL_NAMES = [
 
 
 class Evo:
-    def __init__(self, model_name: str=MODEL_NAMES[0], device: str = 'cuda:0'):
+    def __init__(self, model_name: str = MODEL_NAMES[0], device: str = 'cuda:0'):
         """
         Loads an Evo model checkpoint given a model name.
         If the checkpoint does not exist, automatically downloads the model to
