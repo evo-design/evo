@@ -49,6 +49,9 @@ cd evo/
 pip install .
 ```
 
+We recommend that you install the PyTorch library first, before installing all other dependencies (due to dependency issues of the `flash-attn` library; see, e.g., this [issue](https://github.com/Dao-AILab/flash-attention/issues/246)).
+
+
 ## Usage
 
 Below is an example of how to download Evo and use it locally through the Python API.
@@ -77,7 +80,7 @@ An example of batched inference can be found in [`scripts/example_inference.py`]
 
 We provide an [example script](scripts/generate.py) for how to prompt the model and sample a set of sequences given the prompt.
 ```bash
-python scripts/generate.py \
+python -m scripts.generate \
     --model-name evo-1_stripedhyena_pretrained_8k \
     --prompt ACGT \
     --n-samples 10 \
@@ -89,7 +92,7 @@ python scripts/generate.py \
 
 We also provide an [example script](scripts/generate.py) for using the model to score the log-likelihoods of a set of sequences.
 ```bash
-python scripts/score.py \
+python -m scripts.score \
     --input-fasta examples/example_seqs.fasta \
     --output-tsv scores.tsv \
     --model-name evo-1_stripedhyena_pretrained_8k \

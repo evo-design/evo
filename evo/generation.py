@@ -1,30 +1,27 @@
 import numpy as np
 import sys
-import torch
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
-from .models import load_checkpoint
 from .scoring import logits_to_logprobs, prepare_batch
-from .stripedhyena.src.generation import Generator
-from .stripedhyena.src.model import StripedHyena
-from .stripedhyena.src.tokenizer import CharLevelTokenizer
+from stripedhyena.generation import Generator
+from stripedhyena.model import StripedHyena
+from stripedhyena.tokenizer import CharLevelTokenizer
 
 
 def generate(
-        prompt_seqs: List[str],
-        model: StripedHyena,
-        tokenizer: CharLevelTokenizer,
-        n_tokens: int = 100,
-        temperature: float = 0.,
-        top_k: int = 1,
-        top_p: float = 1.,
-        skipped_tokens: Union[str, List[str], List[int]] = None,
-        batched: bool = True,
-        prepend_bos: bool = True,
-        cached_generation: bool = False,
-        verbose: int = 1,
-        device: str = 'cuda:0',
-        **kwargs,
+    prompt_seqs: List[str],
+    model: StripedHyena,
+    tokenizer: CharLevelTokenizer,
+    n_tokens: int = 100,
+    temperature: float = 0.,
+    top_k: int = 1,
+    top_p: float = 1.,
+    batched: bool = True,
+    prepend_bos: bool = True,
+    cached_generation: bool = False,
+    verbose: int = 1,
+    device: str = 'cuda:0',
+    *args, **kwargs,
 ) -> Tuple[List[str], List[float]]:
     """
     Performs generation from a list of prompts.
@@ -78,7 +75,6 @@ def generate(
             device=device,
             print_generation=True,
             verbose=(verbose > 1),
-            skipped_tokens=skipped_tokens,
             stop_at_eos=False,
         )
         if verbose > 1:
