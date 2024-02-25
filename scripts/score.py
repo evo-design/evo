@@ -24,7 +24,7 @@ def main():
 
     parser.add_argument('--input-fasta', required=True, help='Input FASTA file path')
     parser.add_argument('--output-tsv', required=True, help='Output path to save tab-separated values')
-    parser.add_argument('--model-name', type=str, default='evo-1_stripedhyena_pretrained_8k', help='Evo model name')
+    parser.add_argument('--model-name', type=str, default='evo-1-phase-1', help='Evo model name')
     parser.add_argument('--batch-size', type=int, default=32, help='Number of sequences to evaluate at a time')
     parser.add_argument('--device', type=str, default='cuda:0', help='Device for generation')
 

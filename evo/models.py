@@ -1,27 +1,22 @@
-import os
-import requests
-import torch
-from typing import Tuple
 import yaml
+from transformers import AutoConfig, AutoModelForCausalLM
 
 from stripedhyena.utils import dotdict
 from stripedhyena.model import StripedHyena
 from stripedhyena.tokenizer import CharLevelTokenizer
 
 
-MODEL_NAMES = [
-    'evo-1_stripedhyena_pretrained_8k',
-    'evo-1_stripedhyena_pretrained_131k',
-]
-
+MODEL_NAMES = ['evo-1-phase-1', 'evo-1-phase-2']
 
 class Evo:
-    def __init__(self, model_name: str = MODEL_NAMES[0], device: str = 'cuda:0'):
+    def __init__(self, model_name: str = MODEL_NAMES[0], device: str = None):
         """
         Loads an Evo model checkpoint given a model name.
-        If the checkpoint does not exist, automatically downloads the model to
-        `~/.cache/torch/hub/checkpoints`.
+        If the checkpoint does not exist, we automatically download it from HugginFace.
         """
+        self.device = device
+
+        # Check model name.
 
         if model_name not in MODEL_NAMES:
             raise ValueError(
@@ -29,32 +24,12 @@ class Evo:
                 f'{", ".join(MODEL_NAMES)}.'
             )
 
-        # Download checkpoint.
+        # Assign config path.
 
-        home_directory = os.path.expanduser('~')
-        download_url = f'https://TODO/checkpoints/{model_name}.pt'
-        cache_dir = f'{home_directory}/.cache/torch/hub/checkpoints'
-        checkpoint_path = f'{cache_dir}/{model_name}.pt'
-
-        if not os.path.exists(checkpoint_path):
-            print(f'Downloading {download_url} to {cache_dir}...')
-
-            if not os.path.exists(cache_dir):
-                os.makedirs(cache_dir, exist_ok=True)
-
-            response = requests.get(download_url, stream=True)
-            if response.status_code == 200:
-                with open(checkpoint_path, 'wb') as f:
-                    f.write(response.raw.read())
-            else:
-                raise Exception(f'Failed to download the file. Status code: {response.status_code}')
-
-        # Load correct config file.
-
-        if model_name == 'evo-1_stripedhyena_pretrained_8k':
-            config_path = 'evo/configs/sh_inference_config_7b.yml'
-        elif model_name == 'evo-1_stripedhyena_pretrained_131k':
-            config_path = 'evo/configs/sh_inference_config_7b_rotary_scale_16.yml'
+        if model_name == 'evo-1-phase-1':
+            config_path = 'evo/configs/evo-1-phase-1_inference.yml'
+        elif model_name == 'evo-1-phase-2':
+            config_path = 'evo/configs/evo-1-phase-2_inference.yml'
         else:
             raise ValueError(
                 f'Invalid model name {model_name}. Should be one of: '
@@ -63,34 +38,66 @@ class Evo:
 
         # Load model.
 
-        self.model, self.tokenizer = load_checkpoint(
-            checkpoint_path,
-            model_type='stripedhyena',
+        self.model = load_checkpoint(
+            model_name=model_name,
             config_path=config_path,
-            device=device,
+            device=self.device
         )
 
-        self.device = device
+        # Load tokenizer.
 
+        self.tokenizer = CharLevelTokenizer(512)
+
+        
+# TODO: update links to checkpoints from Together
+HF_MODEL_NAME_MAP = {
+    'evo-1-phase-1': 'LongSafari/Evo-1', # togethercomputer/Evo-1-phase-1
+    'evo-1-phase-2': 'LongSafari/Evo-1-IS110-SFT', # togethercomputer/Evo-1-phase-2
+}
 
 def load_checkpoint(
-    ckpt_path: str,
-    config_path: str = './evo/stripedhyena/configs/sh_inference_config_7b.yml',
-    device: str = 'cuda:0',
-    *args, **kwargs,
-) -> Tuple[StripedHyena, CharLevelTokenizer]:
+    model_name: str = MODEL_NAMES[0],
+    config_path: str = 'evo/configs/evo-1-phase-1_inference.yml',
+    device: str = None,
+    *args, **kwargs
+):
     """
-    Loads a checkpoint from a path and corresponding config.
+    Load checkpoint from HuggingFace and place it into SH model.
     """
+
+    # Map model name to HuggingFace model name.
+
+    hf_model_name = HF_MODEL_NAME_MAP[model_name]
+
+    # Load model config.
+
+    model_config = AutoConfig.from_pretrained(hf_model_name, trust_remote_code=True)
+    model_config.use_cache = True
+
+    # Load model.
+
+    model = AutoModelForCausalLM.from_pretrained(
+        hf_model_name,
+        config=model_config,
+        trust_remote_code=True,
+    )
+
+    # Load model state dict & cleanup.
+
+    state_dict = model.backbone.state_dict()
+    del model
+    del model_config
+
+    # Load SH config.
+
     global_config = dotdict(yaml.load(open(config_path), Loader=yaml.FullLoader))
 
+    # Load SH Model.
+
     model = StripedHyena(global_config)
-    tokenizer = CharLevelTokenizer(512)
-
-    model.load_state_dict(torch.load(ckpt_path), strict=True)
-
+    model.load_state_dict(state_dict, strict=True)
     model.to_bfloat16_except_poles_residues()
+    if device is not None:
+        model = model.to(device)
 
-    model = model.to(device)
-
-    return model, tokenizer
+    return model
