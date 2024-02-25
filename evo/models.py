@@ -6,10 +6,10 @@ from stripedhyena.model import StripedHyena
 from stripedhyena.tokenizer import CharLevelTokenizer
 
 
-MODEL_NAMES = ['evo-1-phase-1', 'evo-1-phase-2']
+MODEL_NAMES = ['Evo-1_pretrained-8k', 'Evo-1_pretrained-131k']
 
 class Evo:
-    def __init__(self, model_name: str = MODEL_NAMES[0], device: str = None):
+    def __init__(self, model_name: str = MODEL_NAMES[1], device: str = None):
         """
         Loads an Evo model checkpoint given a model name.
         If the checkpoint does not exist, we automatically download it from HuggingFace.
@@ -26,10 +26,10 @@ class Evo:
 
         # Assign config path.
 
-        if model_name == 'evo-1-phase-1':
-            config_path = 'evo/configs/evo-1-phase-1_inference.yml'
-        elif model_name == 'evo-1-phase-2':
-            config_path = 'evo/configs/evo-1-phase-2_inference.yml'
+        if model_name == 'Evo-1_pretrained-8k':
+            config_path = 'evo/configs/evo-1_pretrained-8k_inference.yml'
+        elif model_name == 'Evo-1_pretrained-131k':
+            config_path = 'evo/configs/evo-1_pretrained-131k_inference.yml'
         else:
             raise ValueError(
                 f'Invalid model name {model_name}. Should be one of: '
@@ -51,13 +51,13 @@ class Evo:
         
 # TODO: update links to checkpoints from Together
 HF_MODEL_NAME_MAP = {
-    'evo-1-phase-1': 'LongSafari/Evo-1', # togethercomputer/Evo-1-phase-1
-    'evo-1-phase-2': 'LongSafari/Evo-1-IS110-SFT', # togethercomputer/Evo-1-phase-2
+    'Evo-1_pretrained-8k': 'LongSafari/Evo-1', # togethercomputer/Evo-1_pretrained-8k
+    'Evo-1_pretrained-131k': 'LongSafari/Evo-1', # togethercomputer/Evo-1_pretrained-131k
 }
 
 def load_checkpoint(
-    model_name: str = MODEL_NAMES[0],
-    config_path: str = 'evo/configs/evo-1-phase-1_inference.yml',
+    model_name: str = MODEL_NAMES[1],
+    config_path: str = 'evo/configs/evo-1_pretrained-131k_inference.yml',
     device: str = None,
     *args, **kwargs
 ):

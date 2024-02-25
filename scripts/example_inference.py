@@ -13,7 +13,7 @@ def main():
 
     device = 'cuda:0'
 
-    evo_model = Evo('evo-1-phase-1')
+    evo_model = Evo('Evo-1_pretrained-131k')
     model, tokenizer = evo_model.model, evo_model.tokenizer
     model.to(device)
     model.eval()
