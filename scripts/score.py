@@ -2,7 +2,7 @@
 Usage: python -m scripts.score \
            --input-fasta examples/example_seqs.fasta \
            --output-tsv scores.tsv \
-           --model-name evo-1_stripedhyena_pretrained_8k \
+           --model-name evo-1-pretrained-131k \
            --device cuda:0
 
 Scores sequences in an input FASTA file according to the joint log-likelihood of the
@@ -24,7 +24,7 @@ def main():
 
     parser.add_argument('--input-fasta', required=True, help='Input FASTA file path')
     parser.add_argument('--output-tsv', required=True, help='Output path to save tab-separated values')
-    parser.add_argument('--model-name', type=str, default='evo-1_stripedhyena_pretrained_8k', help='Evo model name')
+    parser.add_argument('--model-name', type=str, default='evo-1-pretrained-131k', help='Evo model name')
     parser.add_argument('--batch-size', type=int, default=32, help='Number of sequences to evaluate at a time')
     parser.add_argument('--device', type=str, default='cuda:0', help='Device for generation')
 
