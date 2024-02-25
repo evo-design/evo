@@ -1,5 +1,5 @@
 """
-Usage: python -m scripts/generate \
+Usage: python -m scripts.generate \
            --model-name evo-1-phase-1 \
            --prompt ACGT \
            --n-samples 10 \
