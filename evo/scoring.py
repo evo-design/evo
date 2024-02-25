@@ -34,9 +34,9 @@ def prepare_batch(
 
 
 def logits_to_logprobs(
-        logits: torch.Tensor,
-        input_ids: torch.Tensor,
-        trim_bos: bool = True,
+    logits: torch.Tensor,
+    input_ids: torch.Tensor,
+    trim_bos: bool = True,
 ) -> torch.Tensor:
     """
     Takes in a tensor of logits of dimension (batch, length, vocab).
