@@ -12,7 +12,7 @@ class Evo:
     def __init__(self, model_name: str = MODEL_NAMES[0], device: str = None):
         """
         Loads an Evo model checkpoint given a model name.
-        If the checkpoint does not exist, we automatically download it from HugginFace.
+        If the checkpoint does not exist, we automatically download it from HuggingFace.
         """
         self.device = device
 
