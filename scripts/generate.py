@@ -1,6 +1,6 @@
 """
 Usage: python -m scripts/generate \
-           --model-name evo-1_stripedhyena_pretrained_8k \
+           --model-name evo-1-phase-1 \
            --prompt ACGT \
            --n-samples 10 \
            --n-tokens 100 \
