@@ -21,7 +21,7 @@ def main():
     # Parse command-line arguments.
     parser = argparse.ArgumentParser(description='Generate sequences using the Evo model.')
 
-    parser.add_argument('--model-name', type=str, default='evo-1_stripedhyena_pretrained_8k', help='Evo model name')
+    parser.add_argument('--model-name', type=str, default='evo-1-phase-1', help='Evo model name')
     parser.add_argument('--prompt', type=str, default='ACGT', help='Prompt for generation')
     parser.add_argument('--n-samples', type=int, default=3, help='Number of sequences to sample at once')
     parser.add_argument('--n-tokens', type=int, default=100, help='Number of tokens to generate')
