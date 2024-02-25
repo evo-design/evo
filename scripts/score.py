@@ -2,7 +2,7 @@
 Usage: python -m scripts.score \
            --input-fasta examples/example_seqs.fasta \
            --output-tsv scores.tsv \
-           --model-name evo-1_stripedhyena_pretrained_8k \
+           --model-name evo-1-phase-1 \
            --device cuda:0
 
 Scores sequences in an input FASTA file according to the joint log-likelihood of the
