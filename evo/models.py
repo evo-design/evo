@@ -6,7 +6,7 @@ from stripedhyena.model import StripedHyena
 from stripedhyena.tokenizer import CharLevelTokenizer
 
 
-MODEL_NAMES = ['Evo-1_pretrained-8k', 'Evo-1_pretrained-131k']
+MODEL_NAMES = ['evo-1-pretrained-8k', 'evo-1-pretrained-131k']
 
 class Evo:
     def __init__(self, model_name: str = MODEL_NAMES[1], device: str = None):
@@ -26,9 +26,9 @@ class Evo:
 
         # Assign config path.
 
-        if model_name == 'Evo-1_pretrained-8k':
+        if model_name == 'evo-1-pretrained-8k':
             config_path = 'evo/configs/evo-1_pretrained-8k_inference.yml'
-        elif model_name == 'Evo-1_pretrained-131k':
+        elif model_name == 'evo-1-pretrained-131k':
             config_path = 'evo/configs/evo-1_pretrained-131k_inference.yml'
         else:
             raise ValueError(
@@ -51,8 +51,8 @@ class Evo:
         
 # TODO: update links to checkpoints from Together
 HF_MODEL_NAME_MAP = {
-    'Evo-1_pretrained-8k': 'LongSafari/Evo-1', # togethercomputer/Evo-1_pretrained-8k
-    'Evo-1_pretrained-131k': 'LongSafari/Evo-1', # togethercomputer/Evo-1_pretrained-131k
+    'evo-1-pretrained-8k': 'LongSafari/Evo-1', # togethercomputer/evo-1-pretrained-8k
+    'evo-1-pretrained-131k': 'LongSafari/Evo-1', # togethercomputer/evo-1-pretrained-131k
 }
 
 def load_checkpoint(
