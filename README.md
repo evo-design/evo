@@ -5,7 +5,7 @@
 Evo is a biological foundation model capable of long-context modeling and design.
 Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
 Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-genome dataset containing ~300 billion tokens.
-We describe Evo in the the paper [``Sequence modeling and design from molecular to genome scale with Evo''](https://arcinstitute.org/manuscripts/Evo).
+We describe Evo in the the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://arcinstitute.org/manuscripts/Evo).
 
 Technical details about Evo can be found in our preprint and our accompanying blog post.
 
