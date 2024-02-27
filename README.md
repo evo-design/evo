@@ -1,15 +1,12 @@
 # Evo: DNA foundation modeling from molecular to genome scale
 
-Tasks remaining:
-- [ ] Upload checkpoints to the web and finalize auto downloading code.
-- [ ] Package and upload to PyPI.
-- [ ] Update with preprint info, blog info, Together API info, and HF info.
+![Evo](evo.jpg)
 
 Evo is a biological foundation model capable of long-context modeling and design.
 Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
 Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-genome dataset containing ~300 billion tokens.
 
-Technical details about Evo can be found in our preprint and our accompanying blog post.
+We describe Evo in the the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://arcinstitute.org/manuscripts/Evo) and in the [accompanying blog post]().
 
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
@@ -23,8 +20,8 @@ We provide the following model checkpoints:
   - [Requirements](#requirements)
   - [Installation](#installation)
 - [Usage](#usage)
-- [Web API](#web-api)
-- [HuggingFace](#hugging-face)
+- [HuggingFace](#huggingface)
+- [Together API](#together-api)
 - [Citation](#citation)
 
 ## Setup
@@ -99,14 +96,70 @@ python -m scripts.score \
     --device cuda:0
 ```
 
-## Web API
+## HuggingFace
 
-We are working with [Together.AI](https://www.together.ai/) on a web API that will provide logits and sampling functionality for Evo.
+Evo is integrated with [HuggingFace](https://huggingface.co/togethercomputer/evo-1-131k-base).
+```python
+from transformers import AutoConfig, AutoModelForCausalLM
 
-## HuggingFace integration
+model_name = 'togethercomputer/evo-1-8k-base'
 
-We are working on integration with [HuggingFace](https://huggingface.co/).
+model_config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
+model_config.use_cache = True
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    config=model_config,
+    trust_remote_code=True,
+)
+```
+
+
+## Together API
+
+Evo is also available via an API by [TogetherAI](https://www.together.ai/).
+
+```python
+import openai
+import os
+
+# Fill in your API information here.
+client = openai.OpenAI(
+  api_key=TOGETHER_API_KEY,
+  base_url='https://api.together.xyz',
+)
+
+chat_completion = client.chat.completions.create(
+  messages=[
+    {
+      "role": "system",
+      "content": ""
+    },
+    {
+      "role": "user",
+      "content": "ACGT", # Prompt the model with a sequence.
+    }
+  ],
+  model="togethercomputer/evo-1-131k-base",
+  max_tokens=128, # Sample some number of new tokens.
+  logprobs=True
+)
+print(
+    chat_completion.choices[0].logprobs.token_logprobs,
+    chat_completion.choices[0].message.content
+)
+```
 
 ## Citation
 
-We will make a preprint publicly available soon.
+Please cite the following preprint when referencing Evo.
+
+```
+@article{nguyen2024sequence,
+   author = {Eric Nguyen and Michael Poli and Matthew G. Durrant and Armin W. Thomas and Brian Kang and Jeremy Sullivan and Madelena Y. Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A. Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D. Hsu and Brian L. Hie},
+   journal = {Arc Institute manuscripts},
+   title = {Sequence modeling and design from molecular to genome scale with Evo},
+   url = {https://arcinstitute.org/manuscripts/Evo},
+   year = {2024},
+}
+```
