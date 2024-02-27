@@ -110,10 +110,11 @@ We are working on integration with [HuggingFace](https://huggingface.co/).
 Please cite the following preprint when referencing Evo.
 
 ```
-@article{ngyuen2024sequence,
+@article{nguyen2024sequence,
    author = {Eric Nguyen and Michael Poli and Matthew G. Durrant and Armin W. Thomas and Brian Kang and Jeremy Sullivan and Madelena Y. Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A. Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D. Hsu and Brian L. Hie},
    journal = {Arc Institute manuscripts},
    title = {Sequence modeling and design from molecular to genome scale with Evo},
+   url = {https://arcinstitute.org/manuscripts/Evo},
    year = {2024},
 }
 ```
