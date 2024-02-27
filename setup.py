@@ -24,6 +24,8 @@ setup(
     url='https://github.com/evo-design/evo',
     license='Apache-2.0',
     packages=sources.keys(),
+    package_data={'evo': ['evo/configs/*.yml']},
+    include_package_data=True,
     package_dir=sources,
     install_requires=requirements,
     python_requires='>=3.6',
