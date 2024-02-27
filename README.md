@@ -20,8 +20,8 @@ We provide the following model checkpoints:
   - [Requirements](#requirements)
   - [Installation](#installation)
 - [Usage](#usage)
-- [Web API](#web-api)
-- [HuggingFace](#hugging-face)
+- [HuggingFace](#huggingface)
+- [Together API](#together-api)
 - [Citation](#citation)
 
 ## Setup
@@ -96,7 +96,7 @@ python -m scripts.score \
     --device cuda:0
 ```
 
-## HuggingFace integration
+## HuggingFace
 
 Evo is integrated with [HuggingFace](https://huggingface.co/togethercomputer/evo-1-131k-base).
 ```python
@@ -115,7 +115,7 @@ model = AutoModelForCausalLM.from_pretrained(
 ```
 
 
-## Together Web API
+## Together API
 
 Evo is also available via an API by [TogetherAI](https://www.together.ai/).
 
