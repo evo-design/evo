@@ -1,10 +1,5 @@
 # Evo: DNA foundation modeling from molecular to genome scale
 
-Tasks remaining:
-- [ ] Upload checkpoints to the web and finalize auto downloading code.
-- [ ] Package and upload to PyPI.
-- [ ] Update with preprint info, blog info, Together API info, and HF info.
-
 ![Evo](evo.jpg)
 
 Evo is a biological foundation model capable of long-context modeling and design.
