@@ -1,5 +1,6 @@
-import yaml
+import pkgutil
 from transformers import AutoConfig, AutoModelForCausalLM
+import yaml
 
 from stripedhyena.utils import dotdict
 from stripedhyena.model import StripedHyena
@@ -27,9 +28,9 @@ class Evo:
         # Assign config path.
 
         if model_name == 'evo-1-8k-base':
-            config_path = 'evo/configs/evo-1-8k-base_inference.yml'
+            config_path = 'configs/evo-1-8k-base_inference.yml'
         elif model_name == 'evo-1-131k-base':
-            config_path = 'evo/configs/evo-1-131k-base_inference.yml'
+            config_path = 'configs/evo-1-131k-base_inference.yml'
         else:
             raise ValueError(
                 f'Invalid model name {model_name}. Should be one of: '
@@ -89,7 +90,8 @@ def load_checkpoint(
 
     # Load SH config.
 
-    global_config = dotdict(yaml.load(open(config_path), Loader=yaml.FullLoader))
+    config = yaml.safe_load(pkgutil.get_data(__name__, config_path))
+    global_config = dotdict(config, Loader=yaml.FullLoader)
 
     # Load SH Model.
 
