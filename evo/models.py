@@ -49,10 +49,9 @@ class Evo:
         self.tokenizer = CharLevelTokenizer(512)
 
         
-# TODO: update links to checkpoints from Together
 HF_MODEL_NAME_MAP = {
-    'evo-1-pretrained-8k': 'LongSafari/Evo-1', # togethercomputer/evo-1-pretrained-8k
-    'evo-1-pretrained-131k': 'LongSafari/Evo-1', # togethercomputer/evo-1-pretrained-131k
+    'evo-1-pretrained-8k': 'togethercomputer/evo-1-8k-base',
+    'evo-1-pretrained-131k': 'togethercomputer/evo-1-131k-base',
 }
 
 def load_checkpoint(

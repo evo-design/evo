@@ -5,9 +5,12 @@ Tasks remaining:
 - [ ] Package and upload to PyPI.
 - [ ] Update with preprint info, blog info, Together API info, and HF info.
 
+![Evo](evo.jpg)
+
 Evo is a biological foundation model capable of long-context modeling and design.
 Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
 Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-genome dataset containing ~300 billion tokens.
+We describe Evo in the the paper [``Sequence modeling and design from molecular to genome scale with Evo''](https://arcinstitute.org/manuscripts/Evo).
 
 Technical details about Evo can be found in our preprint and our accompanying blog post.
 
@@ -109,4 +112,13 @@ We are working on integration with [HuggingFace](https://huggingface.co/).
 
 ## Citation
 
-We will make a preprint publicly available soon.
+Please cite the following preprint when referencing Evo.
+
+```
+@article{ngyuen2024sequence,
+   author = {Eric Nguyen and Michael Poli and Matthew G. Durrant and Armin W. Thomas and Brian Kang and Jeremy Sullivan and Madelena Y. Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A. Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D. Hsu and Brian L. Hie},
+   journal = {Arc Institute manuscripts},
+   title = {Sequence modeling and design from molecular to genome scale with Evo},
+   year = {2024},
+}
+```
