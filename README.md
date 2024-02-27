@@ -11,8 +11,8 @@ We describe Evo in the the paper [“Sequence modeling and design from molecular
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
 |----------------------------------------|-------------|
-| `evo-1-pretrained-8k`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
-| `evo-1-pretrained-131k`   | A model pretrained with 131,072 context using `evo-1-pretrained-8k` as the base model. We use this model to reason about and generate sequences at the genome scale. |
+| `evo-1-8k-base`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
+| `evo-1-131k-base`   | A model pretrained with 131,072 context using `evo-1-8k-base` as the base model. We use this model to reason about and generate sequences at the genome scale. |
 
 ## Contents
 
@@ -28,10 +28,12 @@ We provide the following model checkpoints:
 
 ### Requirements
 
+Evo is based on [StripedHyena](https://github.com/togethercomputer/stripedhyena/tree/main).
+
 Evo uses [FlashAttention-2](https://github.com/Dao-AILab/flash-attention), which may not work on all GPU architectures.
 Please consult the [FlashAttention GitHub repository](https://github.com/Dao-AILab/flash-attention#installation-and-features) for the current list of supported GPUs.
 
-Evo also uses PyTorch. Make sure the correct [PyTorch version is installed](https://pytorch.org/) on your system.
+Make sure to install the correct [PyTorch version is installed](https://pytorch.org/) on your system.
 
 ### Installation
 
@@ -48,6 +50,12 @@ pip install .
 
 We recommend that you install the PyTorch library first, before installing all other dependencies (due to dependency issues of the `flash-attn` library; see, e.g., this [issue](https://github.com/Dao-AILab/flash-attention/issues/246)).
 
+One of our [example scripts](scripts/), demonstrating how to go from generating sequences with Evo to folding proteins ([scripts/generation_to_folding.py](scripts/generation_to_folding.py)), further requires the installation of `prodigal`. We have created an [environment.yml](environment.yml) file for this:
+
+```bash
+conda env create -f environment.yml
+conda activate evo-design
+```
 
 ## Usage
 
@@ -58,7 +66,7 @@ import torch
 
 device = 'cuda:0'
 
-evo_model = Evo('evo-1-pretrained-131k')
+evo_model = Evo('evo-1-131k-base')
 model, tokenizer = evo_model.model, evo_model.tokenizer
 model.to(device)
 model.eval()
@@ -78,7 +86,7 @@ An example of batched inference can be found in [`scripts/example_inference.py`]
 We provide an [example script](scripts/generate.py) for how to prompt the model and sample a set of sequences given the prompt.
 ```bash
 python -m scripts.generate \
-    --model-name 'evo-1-pretrained-131k' \
+    --model-name 'evo-1-131k-base' \
     --prompt ACGT \
     --n-samples 10 \
     --n-tokens 100 \
@@ -92,7 +100,7 @@ We also provide an [example script](scripts/generate.py) for using the model to 
 python -m scripts.score \
     --input-fasta examples/example_seqs.fasta \
     --output-tsv scores.tsv \
-    --model-name 'evo-1-pretrained-131k' \
+    --model-name 'evo-1-131k-base' \
     --device cuda:0
 ```
 

@@ -34,7 +34,7 @@ def main():
         +"s__Escherichia|"
     )
     ap.add_argument('--prompt', type=str, default=default_prompt, help='Prompt for generation')
-    ap.add_argument("--model-name", type=str, default="togethercomputer/evo-1-pretrained-131k", help='Hugging Face model name')
+    ap.add_argument("--model-name", type=str, default="togethercomputer/evo-1-131k-base", help='Hugging Face model name')
     ap.add_argument('--temperature', type=float, default=1.0, help='Temperature during sampling')
     ap.add_argument('--top-k', type=int, default=4, help='Top K during sampling')
     ap.add_argument('--top-p', type=float, default=1., help='Top P during sampling')
