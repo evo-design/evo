@@ -53,7 +53,7 @@ pip install .
 
 We recommend that you install the PyTorch library first, before installing all other dependencies (due to dependency issues of the `flash-attn` library; see, e.g., this [issue](https://github.com/Dao-AILab/flash-attention/issues/246)).
 
-One of our example [scripts](scripts/generation_to_folding.py), demonstrating how to go from generating sequences with Evo to folding proteins, further requires the installation of `prodigal`. We have created an [environment.yml](environment.yml) file for this:
+One of our [example scripts](scripts/), demonstrating how to go from generating sequences with Evo to folding proteins ([scripts/generation_to_folding.py](scripts/generation_to_folding.py)), further requires the installation of `prodigal`. We have created an [environment.yml](environment.yml) file for this:
 
 ```bash
 conda env create -f environment.yml
