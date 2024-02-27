@@ -31,10 +31,12 @@ We provide the following model checkpoints:
 
 ### Requirements
 
+Evo is based on [StripedHyena](https://github.com/togethercomputer/stripedhyena/tree/main).
+
 Evo uses [FlashAttention-2](https://github.com/Dao-AILab/flash-attention), which may not work on all GPU architectures.
 Please consult the [FlashAttention GitHub repository](https://github.com/Dao-AILab/flash-attention#installation-and-features) for the current list of supported GPUs.
 
-Evo also uses PyTorch. Make sure the correct [PyTorch version is installed](https://pytorch.org/) on your system.
+Make sure to install the correct [PyTorch version is installed](https://pytorch.org/) on your system.
 
 ### Installation
 
@@ -51,6 +53,12 @@ pip install .
 
 We recommend that you install the PyTorch library first, before installing all other dependencies (due to dependency issues of the `flash-attn` library; see, e.g., this [issue](https://github.com/Dao-AILab/flash-attention/issues/246)).
 
+One of our example scripts, demonstrating how to go from generting sequences with Evo to folding proteins, further requires the installation of `prodigal`. We have created an [environment.yml](environment.yml) file for this:
+
+```bash
+conda env create -f environment.yml
+conda activate evo-design
+```
 
 ## Usage
 
