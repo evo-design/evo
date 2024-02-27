@@ -10,3 +10,4 @@ dependencies:
       - stripedhyena==0.2.2
       - biopython
       - biotite
+      - pandas
