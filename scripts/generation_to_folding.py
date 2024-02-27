@@ -66,13 +66,14 @@ def main():
 
     # Load model.
 
+    print(f'Loading {args.model_name}...')
     model = AutoModelForCausalLM.from_pretrained(
         args.model_name,
         config=model_config,
         trust_remote_code=True,
     )
-    model.eval()
     model = model.to(args.device)
+    model.backbone = model.backbone.to(torch.bfloat16)
 
     # Make character-level tokenizer.
 
@@ -101,6 +102,7 @@ def main():
     )
     
     # Decode.
+    
     dna_seq = tokenizer.detokenize_batch(gen_token_ids)[0]
     print('Generated DNA sequence: ', dna_seq)
     
@@ -121,18 +123,23 @@ def main():
 
     print('Loading ESMFold...')
     esmfold = EsmForProteinFolding.from_pretrained("facebook/esmfold_v1")
+    esmfold = esmfold.to(args.device)
+    esmfold.esm = esmfold.esm.half()
+
+    # Load ESMFold tokenizer.
+
     esmfold_tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
     
     # Fold proteins.
 
     print('Folding proteins with EMSFold...')
-    for protein_record in SeqIO.parse(args.proteins_fasta, "fasta"):
+    for i, protein_record in enumerate(SeqIO.parse(args.proteins_fasta, "fasta")):
         protein_seq = str(protein_record.seq)[:-1] # remove stop codon
         print('Protein sequence: ', protein_seq)
 
         with torch.inference_mode():
             esmfold_in = esmfold_tokenizer([protein_seq], return_tensors="pt", add_special_tokens=False)
-            esmfold_out = esmfold(**esmfold_in)
+            esmfold_out = esmfold(**esmfold_in.to(args.device))
             esmfold_out_pdb = esmfold.output_to_pdb(esmfold_out)[0]
 
         with open(args.structure_pdb, "w") as f:
