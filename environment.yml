@@ -1,0 +1,13 @@
+name: evo-design
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - bioconda:prodigal
+  - python=3.11
+  - pip:
+      - stripedhyena==0.2.2
+      - biopython
+      - biotite
+      - pandas
