@@ -84,7 +84,7 @@ def main():
     print(f'Prompting {args.model_name} with: ', args.prompt)
     prompt_ids = torch.tensor(tokenizer.tokenize(args.prompt)).to(torch.long).to(args.device)
 
-    # Generate.
+    # Sample sequences from Evo.
 
     print('Generating...')
     gen_token_ids = model.generate(
