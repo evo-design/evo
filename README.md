@@ -125,7 +125,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 ## Together API
 
-Evo is also available via an API by [TogetherAI](https://www.together.ai/).
+Evo will also be soon available via an API by [TogetherAI](https://www.together.ai/).
 
 ```python
 import openai
