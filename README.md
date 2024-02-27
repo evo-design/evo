@@ -14,8 +14,8 @@ Technical details about Evo can be found in our preprint and our accompanying bl
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
 |----------------------------------------|-------------|
-| `evo-1-pretrained-8k`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
-| `evo-1-pretrained-131k`   | A model pretrained with 131,072 context using `evo-1-pretrained-8k` as the base model. We use this model to reason about and generate sequences at the genome scale. |
+| `evo-1-8k-base`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
+| `evo-1-131k-base`   | A model pretrained with 131,072 context using `evo-1-8k-base` as the base model. We use this model to reason about and generate sequences at the genome scale. |
 
 ## Contents
 
@@ -61,7 +61,7 @@ import torch
 
 device = 'cuda:0'
 
-evo_model = Evo('evo-1-pretrained-131k')
+evo_model = Evo('evo-1-131k-base')
 model, tokenizer = evo_model.model, evo_model.tokenizer
 model.to(device)
 model.eval()
@@ -81,7 +81,7 @@ An example of batched inference can be found in [`scripts/example_inference.py`]
 We provide an [example script](scripts/generate.py) for how to prompt the model and sample a set of sequences given the prompt.
 ```bash
 python -m scripts.generate \
-    --model-name 'evo-1-pretrained-131k' \
+    --model-name 'evo-1-131k-base' \
     --prompt ACGT \
     --n-samples 10 \
     --n-tokens 100 \
@@ -95,7 +95,7 @@ We also provide an [example script](scripts/generate.py) for using the model to 
 python -m scripts.score \
     --input-fasta examples/example_seqs.fasta \
     --output-tsv scores.tsv \
-    --model-name 'evo-1-pretrained-131k' \
+    --model-name 'evo-1-131k-base' \
     --device cuda:0
 ```
 

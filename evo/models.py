@@ -6,7 +6,7 @@ from stripedhyena.model import StripedHyena
 from stripedhyena.tokenizer import CharLevelTokenizer
 
 
-MODEL_NAMES = ['evo-1-pretrained-8k', 'evo-1-pretrained-131k']
+MODEL_NAMES = ['evo-1-8k-base', 'evo-1-131k-base']
 
 class Evo:
     def __init__(self, model_name: str = MODEL_NAMES[1], device: str = None):
@@ -26,10 +26,10 @@ class Evo:
 
         # Assign config path.
 
-        if model_name == 'evo-1-pretrained-8k':
-            config_path = 'evo/configs/evo-1_pretrained-8k_inference.yml'
-        elif model_name == 'evo-1-pretrained-131k':
-            config_path = 'evo/configs/evo-1_pretrained-131k_inference.yml'
+        if model_name == 'evo-1-8k-base':
+            config_path = 'evo/configs/evo-1-8k-base_inference.yml'
+        elif model_name == 'evo-1-131k-base':
+            config_path = 'evo/configs/evo-1-131k-base_inference.yml'
         else:
             raise ValueError(
                 f'Invalid model name {model_name}. Should be one of: '
@@ -49,15 +49,14 @@ class Evo:
         self.tokenizer = CharLevelTokenizer(512)
 
         
-# TODO: update links to checkpoints from Together
 HF_MODEL_NAME_MAP = {
-    'evo-1-pretrained-8k': 'LongSafari/Evo-1', # togethercomputer/evo-1-pretrained-8k
-    'evo-1-pretrained-131k': 'LongSafari/Evo-1', # togethercomputer/evo-1-pretrained-131k
+    'evo-1-8k-base': 'togethercomputer/evo-1-8k-base',
+    'evo-1-131k-base': 'togethercomputer/evo-1-131k-base',
 }
 
 def load_checkpoint(
     model_name: str = MODEL_NAMES[1],
-    config_path: str = 'evo/configs/evo-1_pretrained-131k_inference.yml',
+    config_path: str = 'evo/configs/evo-1-131k-base_inference.yml',
     device: str = None,
     *args, **kwargs
 ):
