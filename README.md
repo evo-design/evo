@@ -97,13 +97,59 @@ python -m scripts.score \
     --device cuda:0
 ```
 
-## Web API
-
-We are working with [Together.AI](https://www.together.ai/) on a web API that will provide logits and sampling functionality for Evo.
-
 ## HuggingFace integration
 
-We are working on integration with [HuggingFace](https://huggingface.co/).
+Evo is integrated with [HuggingFace](https://huggingface.co/togethercomputer/evo-1-131k-base).
+```python
+from transformers import AutoConfig, AutoModelForCausalLM
+
+model_name = 'togethercomputer/evo-1-8k-base'
+
+model_config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
+model_config.use_cache = True
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    config=model_config,
+    trust_remote_code=True,
+)
+```
+
+
+## Together Web API
+
+Evo is also available via an API by [TogetherAI](https://www.together.ai/).
+
+```python
+import openai
+import os
+
+# Fill in your API information here.
+client = openai.OpenAI(
+  api_key=TOGETHER_API_KEY,
+  base_url='https://api.together.xyz',
+)
+
+chat_completion = client.chat.completions.create(
+  messages=[
+    {
+      "role": "system",
+      "content": ""
+    },
+    {
+      "role": "user",
+      "content": "ACGT", # Prompt the model with a sequence.
+    }
+  ],
+  model="togethercomputer/evo-1-131k-base",
+  max_tokens=128, # Sample some number of new tokens.
+  logprobs=True
+)
+print(
+    chat_completion.choices[0].logprobs.token_logprobs,
+    chat_completion.choices[0].message.content
+)
+```
 
 ## Citation
 
