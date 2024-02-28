@@ -6,7 +6,7 @@ Evo is a biological foundation model capable of long-context modeling and design
 Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
 Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-genome dataset containing ~300 billion tokens.
 
-We describe Evo in the the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://arcinstitute.org/manuscripts/Evo) and in the [accompanying blog post](https://arc-website-git-foundation-model-tool-arc-institute.vercel.app/news/blog/evo).
+We describe Evo in the the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.biorxiv.org/content/10.1101/2024.02.27.582234v1) and in the [accompanying blog post](https://arcinstitute.org/news/blog/evo).
 
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
@@ -163,11 +163,13 @@ print(
 Please cite the following preprint when referencing Evo.
 
 ```
-@article{nguyen2024sequence,
-   author = {Eric Nguyen and Michael Poli and Matthew G. Durrant and Armin W. Thomas and Brian Kang and Jeremy Sullivan and Madelena Y. Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A. Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D. Hsu and Brian L. Hie},
-   journal = {Arc Institute manuscripts},
-   title = {Sequence modeling and design from molecular to genome scale with Evo},
-   url = {https://arcinstitute.org/manuscripts/Evo},
-   year = {2024},
+@article {nguyen2024sequence,
+	author = {Eric Nguyen and Michael Poli and Matthew G Durrant and Armin W Thomas and Brian Kang and Jeremy Sullivan and Madelena Y Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D Hsu and Brian L Hie},
+	title = {Sequence modeling and design from molecular to genome scale with Evo},
+	year = {2024},
+	doi = {10.1101/2024.02.27.582234},
+	publisher = {Cold Spring Harbor Laboratory},
+	URL = {https://www.biorxiv.org/content/early/2024/02/27/2024.02.27.582234},
+	journal = {bioRxiv}
 }
 ```
