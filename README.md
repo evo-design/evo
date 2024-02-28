@@ -33,7 +33,7 @@ Evo is based on [StripedHyena](https://github.com/togethercomputer/stripedhyena/
 Evo uses [FlashAttention-2](https://github.com/Dao-AILab/flash-attention), which may not work on all GPU architectures.
 Please consult the [FlashAttention GitHub repository](https://github.com/Dao-AILab/flash-attention#installation-and-features) for the current list of supported GPUs.
 
-Make sure to install the correct [PyTorch version is installed](https://pytorch.org/) on your system.
+Make sure to install the correct [PyTorch version](https://pytorch.org/) on your system.
 
 ### Installation
 
