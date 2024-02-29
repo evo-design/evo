@@ -1,10 +1,7 @@
 import transformers
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, DataCollatorForLanguageModeling
-from transformers import AutoConfig, TrainingArguments, Trainer
-from datasets import load_dataset
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, AutoConfig, DataCollatorForLanguageModeling
 import os
-
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["WANDB_DISABLED"] = "true"
@@ -25,12 +22,13 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 tokenizer.pad_token = "X"
 
-# frezze most parameters
 for p in model.parameters():
     p.requires_grad = False
 
 for p in model.backbone.blocks[-1].parameters():
     p.requires_grad = True
+
+from datasets import load_dataset
 
 dataset = load_dataset("gonzalobenegas/human-genome-cds")
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
@@ -44,6 +42,8 @@ tokenized_ds = dataset.map(
     num_proc=12,
 )
 
+from transformers import AutoConfig, AutoModelForCausalLM, TrainingArguments, Trainer
+
 training_args = TrainingArguments(
     output_dir="./evo_results",
     evaluation_strategy="epoch",
@@ -55,6 +55,7 @@ training_args = TrainingArguments(
     max_steps=100, # only a demo
     logging_steps=10,
     eval_steps=100,
+    logging_strategy="steps",
     bf16=True
     # fp16=True, # This didn't work.
 )
@@ -70,4 +71,3 @@ trainer = Trainer(
 )
 
 trainer.train()
-
