@@ -21,6 +21,7 @@ We provide the following model checkpoints:
   - [Installation](#installation)
 - [Usage](#usage)
 - [HuggingFace](#huggingface)
+- [Together web UI](https://api.together.xyz/playground/language/togethercomputer/evo-1-131k-base)
 - [Together API](#together-api)
 - [Citation](#citation)
 
@@ -125,7 +126,10 @@ model = AutoModelForCausalLM.from_pretrained(
 
 ## Together API
 
-Evo will also be soon available via an API by [TogetherAI](https://www.together.ai/).
+Evo is available through TogetheAI with a [web UI](https://api.together.xyz/playground/language/togethercomputer/evo-1-131k-base), where you can interaface and generate DNA sequences with a chat-like interface.
+
+For more detailed or batch workflows, you can call the Together API with a simple example below.
+
 
 ```python
 import openai
