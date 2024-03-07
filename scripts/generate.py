@@ -47,7 +47,7 @@ def main():
     # Sample sequences.
     
     print('Generated sequences:')
-    output_seqs, output_scores = generate(
+    output_seqs, output_scores, generated_logprobs = generate(
         [ args.prompt ] * args.n_samples,
         model,
         tokenizer,
