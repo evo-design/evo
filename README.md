@@ -21,6 +21,7 @@ We provide the following model checkpoints:
   - [Installation](#installation)
 - [Usage](#usage)
 - [HuggingFace](#huggingface)
+- [Together web UI](https://api.together.xyz/playground/language/togethercomputer/evo-1-131k-base)
 - [Together API](#together-api)
 - [Citation](#citation)
 
@@ -125,7 +126,10 @@ model = AutoModelForCausalLM.from_pretrained(
 
 ## Together API
 
-Evo will also be soon available via an API by [TogetherAI](https://www.together.ai/).
+Evo is available through Together AI with a [web UI](https://api.together.xyz/playground/language/togethercomputer/evo-1-131k-base), where you can generate DNA sequences with a chat-like interface.
+
+For more detailed or batch workflows, you can call the Together API with a simple example below.
+
 
 ```python
 import openai
@@ -164,12 +168,12 @@ Please cite the following preprint when referencing Evo.
 
 ```
 @article {nguyen2024sequence,
-	author = {Eric Nguyen and Michael Poli and Matthew G Durrant and Armin W Thomas and Brian Kang and Jeremy Sullivan and Madelena Y Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D Hsu and Brian L Hie},
-	title = {Sequence modeling and design from molecular to genome scale with Evo},
-	year = {2024},
-	doi = {10.1101/2024.02.27.582234},
-	publisher = {Cold Spring Harbor Laboratory},
-	URL = {https://www.biorxiv.org/content/early/2024/02/27/2024.02.27.582234},
-	journal = {bioRxiv}
+    author = {Eric Nguyen and Michael Poli and Matthew G Durrant and Armin W Thomas and Brian Kang and Jeremy Sullivan and Madelena Y Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D Hsu and Brian L Hie},
+    title = {Sequence modeling and design from molecular to genome scale with Evo},
+    year = {2024},
+    doi = {10.1101/2024.02.27.582234},
+    publisher = {Cold Spring Harbor Laboratory},
+    URL = {https://www.biorxiv.org/content/early/2024/02/27/2024.02.27.582234},
+    journal = {bioRxiv}
 }
 ```
