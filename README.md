@@ -98,7 +98,7 @@ python -m scripts.generate \
     --device cuda:0
 ```
 
-We also provide an [example script](scripts/generate.py) for using the model to score the log-likelihoods of a set of sequences.
+We also provide an [example script](scripts/score.py) for using the model to score the log-likelihoods of a set of sequences.
 ```bash
 python -m scripts.score \
     --input-fasta examples/example_seqs.fasta \
