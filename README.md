@@ -14,6 +14,20 @@ We provide the following model checkpoints:
 | `evo-1-8k-base`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
 | `evo-1-131k-base`   | A model pretrained with 131,072 context using `evo-1-8k-base` as the base model. We use this model to reason about and generate sequences at the genome scale. |
 
+## News
+
+
+We identified and fixed an issue related to a wrong permutation of some projections, which affects generation quality. To use the new model revision with HuggingFace, please load as follows:
+```python
+config = AutoConfig.from_pretrained(model_name, trust_remote_code=True, revision="1.1_fix")
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    config=config,
+    trust_remote_code=True,
+    revision="1.1_fix"
+)
+```
+
 ## Contents
 
 - [Setup](#setup)
