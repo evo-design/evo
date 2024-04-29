@@ -71,7 +71,11 @@ def load_checkpoint(
 
     # Load model config.
 
-    model_config = AutoConfig.from_pretrained(hf_model_name, trust_remote_code=True)
+    model_config = AutoConfig.from_pretrained(
+        hf_model_name,
+        trust_remote_code=True,
+        revision='1.1_fix',
+    )
     model_config.use_cache = True
 
     # Load model.
@@ -80,6 +84,7 @@ def load_checkpoint(
         hf_model_name,
         config=model_config,
         trust_remote_code=True,
+        revision='1.1_fix',
     )
 
     # Load model state dict & cleanup.
