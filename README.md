@@ -93,7 +93,8 @@ input_ids = torch.tensor(
     tokenizer.tokenize(sequence),
     dtype=torch.int,
 ).to(device).unsqueeze(0)
-logits, _ = model(input_ids) # (batch, length, vocab)
+with torch.no_grad():
+    logits, _ = model(input_ids) # (batch, length, vocab)
 
 print('Logits: ', logits)
 print('Shape (batch, length, vocab): ', logits.shape)
