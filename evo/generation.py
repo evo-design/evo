@@ -22,7 +22,7 @@ def generate(
     verbose: int = 1,
     device: str = 'cuda:0',
     *args, **kwargs,
-) -> Tuple[List[str], List[float]]:
+) -> Tuple[List[str], List[float], List[np.ndarray]]:
     """
     Performs generation from a list of prompts.
     If all prompts are the same length, this can do batched generation.
@@ -64,7 +64,7 @@ def generate(
             for prompt_seq in prompt_seqs
         ]
 
-    generated_seqs, generated_scores = [], []
+    generated_seqs, generated_scores, generated_logprobs = [], [], []
     for input_ids in input_ids_list:
         batch_size = input_ids.shape[0]
         
@@ -88,12 +88,13 @@ def generate(
 
         logprobs = logits_to_logprobs(logits, output_ids, trim_bos=prepend_bos)
         logprobs = logprobs.float().cpu().numpy()
-
+        
+        generated_logprobs += [logprobs[idx] for idx in range(batch_size)]
         generated_scores += [ np.mean(logprobs[idx]) for idx in range(batch_size) ]
 
     assert len(generated_seqs) == len(generated_scores) == len(prompt_seqs)
     if verbose:
-        for seq, score, prompt in zip(generated_seqs, generated_scores, prompt_seqs):
-            print(f'Prompt: "{prompt}",\tOutput: "{seq}",\tScore: {score}')
+        for seq, score, logprob, prompt in zip(generated_seqs, generated_scores, generated_logprobs, prompt_seqs):
+            print(f'Prompt: "{prompt}",\tOutput: "{seq}",\tScore: {score},\tLogprobs: {logprob.shape}')
 
-    return generated_seqs, generated_scores
+    return generated_seqs, generated_scores, generated_logprobs
