@@ -1,3 +1,4 @@
 stripedhyena==0.2.2
 biopython
 pandas
+triton
