@@ -1,0 +1,3 @@
+include requirements.txt
+include evo/configs/evo-1-8k-base_inference.yml
+include evo/configs/evo-1-131k-base_inference.yml
