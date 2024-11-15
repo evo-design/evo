@@ -189,7 +189,7 @@ The OpenGenome dataset for pretraining Evo is available at [Hugging Face dataset
 
 ## Citation
 
-Please cite the following preprint when referencing Evo.
+Please cite the following publication when referencing Evo.
 
 ```
 @article{nguyen2024sequence,
