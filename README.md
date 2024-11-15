@@ -4,18 +4,19 @@
 
 Evo is a biological foundation model capable of long-context modeling and design.
 Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
-Evo has 7 billion parameters and is trained on OpenGenome, a prokaryotic whole-genome dataset containing ~300 billion tokens.
+Evo has 7 billion parameters and is trained on [OpenGenome](https://huggingface.co/datasets/LongSafari/open-genome), a prokaryotic whole-genome dataset containing ~300 billion tokens.
 
-We describe Evo in the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.biorxiv.org/content/10.1101/2024.02.27.582234v1) and in the [accompanying blog post](https://arcinstitute.org/news/blog/evo).
+We describe Evo in the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.science.org/doi/10.1126/science.ado9336).
 
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
 |----------------------------------------|-------------|
 | `evo-1-8k-base`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
 | `evo-1-131k-base`   | A model pretrained with 131,072 context using `evo-1-8k-base` as the base model. We use this model to reason about and generate sequences at the genome scale. |
+| `evo-1-8k-crispr`   | A model finetuned using `evo-1-8k-base` as the base model to generate CRISPR-Cas systems. |
+| `evo-1-8k-transposon`   | A model finetuned using `evo-1-8k-base` as the base model to generate IS200/IS605 transposons. |
 
 ## News
-
 
 We identified and fixed an issue related to a wrong permutation of some projections, which affects generation quality. To use the new model revision with HuggingFace, please load as follows:
 ```python
@@ -39,6 +40,7 @@ model = AutoModelForCausalLM.from_pretrained(
 - [Together API](#together-api)
 - [colab](https://colab.research.google.com/github/evo-design/evo/blob/main/scripts/hello_evo.ipynb)
 - [Playground wrapper](https://evo.nitro.bio/)
+- [Dataset](#dataset)
 - [Citation](#citation)
 
 ## Setup
@@ -181,18 +183,24 @@ print(
 )
 ```
 
+## Dataset
+
+The OpenGenome dataset for pretraining Evo is available at [Hugging Face datasets](https://huggingface.co/datasets/LongSafari/open-genome).
+
 ## Citation
 
 Please cite the following preprint when referencing Evo.
 
 ```
-@article {nguyen2024sequence,
-    author = {Eric Nguyen and Michael Poli and Matthew G Durrant and Armin W Thomas and Brian Kang and Jeremy Sullivan and Madelena Y Ng and Ashley Lewis and Aman Patel and Aaron Lou and Stefano Ermon and Stephen A Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D Hsu and Brian L Hie},
-    title = {Sequence modeling and design from molecular to genome scale with Evo},
-    year = {2024},
-    doi = {10.1101/2024.02.27.582234},
-    publisher = {Cold Spring Harbor Laboratory},
-    URL = {https://www.biorxiv.org/content/early/2024/02/27/2024.02.27.582234},
-    journal = {bioRxiv}
+@article{nguyen2024sequence,
+   author = {Eric Nguyen and Michael Poli and Matthew G. Durrant and Brian Kang and Dhruva Katrekar and David B. Li and Liam J. Bartie and Armin W. Thomas and Samuel H. King and Garyk Brixi and Jeremy Sullivan and Madelena Y. Ng and Ashley Lewis and Aaron Lou and Stefano Ermon and Stephen A. Baccus and Tina Hernandez-Boussard and Christopher Ré and Patrick D. Hsu and Brian L. Hie },
+   title = {Sequence modeling and design from molecular to genome scale with Evo},
+   journal = {Science},
+   volume = {386},
+   number = {6723},
+   pages = {eado9336},
+   year = {2024},
+   doi = {10.1126/science.ado9336},
+   URL = {https://www.science.org/doi/abs/10.1126/science.ado9336},
 }
 ```

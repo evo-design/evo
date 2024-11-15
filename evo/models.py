@@ -1,4 +1,5 @@
 import pkgutil
+import re
 from transformers import AutoConfig, AutoModelForCausalLM
 import yaml
 
@@ -7,7 +8,12 @@ from stripedhyena.model import StripedHyena
 from stripedhyena.tokenizer import CharLevelTokenizer
 
 
-MODEL_NAMES = ['evo-1-8k-base', 'evo-1-131k-base']
+MODEL_NAMES = [
+    'evo-1-8k-base',
+    'evo-1-131k-base',
+    'evo-1-8k-crispr',
+    'evo-1-8k-transposon',
+]
 
 class Evo:
     def __init__(self, model_name: str = MODEL_NAMES[1], device: str = None):
@@ -27,7 +33,9 @@ class Evo:
 
         # Assign config path.
 
-        if model_name == 'evo-1-8k-base':
+        if model_name == 'evo-1-8k-base' or \
+           model_name == 'evo-1-8k-crispr' or \
+           model_name == 'evo-1-8k-transposon':
             config_path = 'configs/evo-1-8k-base_inference.yml'
         elif model_name == 'evo-1-131k-base':
             config_path = 'configs/evo-1-131k-base_inference.yml'
@@ -53,6 +61,8 @@ class Evo:
 HF_MODEL_NAME_MAP = {
     'evo-1-8k-base': 'togethercomputer/evo-1-8k-base',
     'evo-1-131k-base': 'togethercomputer/evo-1-131k-base',
+    'evo-1-8k-crispr': 'LongSafari/evo-1-8k-crispr',
+    'evo-1-8k-transposon': 'LongSafari/evo-1-8k-transposon',
 }
 
 def load_checkpoint(
@@ -74,7 +84,7 @@ def load_checkpoint(
     model_config = AutoConfig.from_pretrained(
         hf_model_name,
         trust_remote_code=True,
-        revision='1.1_fix',
+        revision='1.1_fix' if re.match(r'evo-1-.*-base', hf_model_name) else 'main',
     )
     model_config.use_cache = True
 
@@ -84,7 +94,7 @@ def load_checkpoint(
         hf_model_name,
         config=model_config,
         trust_remote_code=True,
-        revision='1.1_fix',
+        revision='1.1_fix' if re.match(r'evo-1-.*-base', hf_model_name) else 'main',
     )
 
     # Load model state dict & cleanup.
