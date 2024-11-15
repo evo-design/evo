@@ -25,6 +25,7 @@ setup(
     license='Apache-2.0',
     packages=sources.keys(),
     package_data={'evo': ['evo/configs/*.yml']},
+    data_files=[('', ['requirements.txt'])],
     include_package_data=True,
     package_dir=sources,
     install_requires=requirements,
