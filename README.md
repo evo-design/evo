@@ -36,7 +36,6 @@ model = AutoModelForCausalLM.from_pretrained(
   - [Installation](#installation)
 - [Usage](#usage)
 - [HuggingFace](#huggingface)
-- [Together web UI](https://api.together.xyz/playground/language/togethercomputer/evo-1-131k-base)
 - [Together API](#together-api)
 - [colab](https://colab.research.google.com/github/evo-design/evo/blob/main/scripts/hello_evo.ipynb)
 - [Playground wrapper](https://evo.nitro.bio/)
