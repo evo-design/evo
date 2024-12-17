@@ -24,14 +24,12 @@ from semantic_mining import (
     make_fasta,run_prodigal,filter_protein_fasta
 )
 
-# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Type definitions
 class ModelOutput(NamedTuple):
     sequences: List[str]
     scores: List[float]
@@ -133,30 +131,25 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
             - Aligned second sequence (string)
             - Sequence identity (float between 0-1)
     """
-    aligned_file_name = None  # Initialize variable
+    aligned_file_name = None 
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.fasta') as tmp_fasta:
         SeqIO.write([query_record, ref_record], tmp_fasta, "fasta")
         tmp_fasta_name = tmp_fasta.name
 
     try:
-        # Run MAFFT alignment
         result = subprocess.run(
             [mafft_path, tmp_fasta_name],
             capture_output=True,
             text=True,
             check=True
         )
-
-        # Save alignment output
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as aligned_file:
             aligned_file.write(result.stdout)
             aligned_file_name = aligned_file.name
 
-        # Parse alignment
         alignment = AlignIO.read(aligned_file_name, "fasta")
         aligned_seq1, aligned_seq2 = alignment[0].seq, alignment[1].seq
 
-        # Calculate sequence identity (ignoring gaps)
         identity_count = sum(1 for a, b in zip(aligned_seq1, aligned_seq2)
                               if a != '-' and b != '-' and a == b)
         aligned_length = sum(1 for a, b in zip(aligned_seq1, aligned_seq2)
@@ -166,13 +159,12 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
         return str(aligned_seq1), str(aligned_seq2), identity
 
     finally:
-        # Clean up temporary files
         try:
             os.remove(tmp_fasta_name)
         except OSError:
             pass
 
-        if aligned_file_name:  # Only remove if it was defined
+        if aligned_file_name:
             try:
                 os.remove(aligned_file_name)
             except OSError:
@@ -206,7 +198,6 @@ def align_and_save_closest_match(
        filtered_fasta: FASTA file containing query sequences that had matches
            above the identity threshold
    """
-   # Load reference sequences
    reference_seqs = {
        record.id: record
        for record in SeqIO.parse(reference_fasta, "fasta")
@@ -219,15 +210,13 @@ def align_and_save_closest_match(
        best_identity = 0.0
        best_match = None
        
-       # Find best matching reference sequence
        for ref_id, ref_record in reference_seqs.items():
            _, _, identity = align_pair(record, ref_record, mafft_path)
-           identity *= 100  # Convert to percentage
+           identity *= 100 
            if identity > best_identity:
                best_identity = identity
                best_match = ref_id
        
-       # Save results if above threshold
        if best_identity >= identity_threshold:
            results.append({
                'query_id': record.id,
@@ -236,7 +225,6 @@ def align_and_save_closest_match(
            })
            filtered_records.append(record)
 
-   # Save results
    pd.DataFrame(results).to_csv(output_csv, index=False)
    SeqIO.write(filtered_records, filtered_fasta, "fasta")
 
@@ -315,21 +303,17 @@ def process_operon_sequences(
     """
     logger.info("Starting sequence analysis...")
     
-    # Load input sequences with their UUIDs
     input_sequences: Dict[str, str] = {}
     for record in SeqIO.parse(input_fasta, "fasta"):
-        uuid = record.id.split('_')[0]  # Assuming UUID is first part before underscore
+        uuid = record.id.split('_')[0] 
         sequence = str(record.seq).replace("*", "")
         input_sequences[uuid] = sequence
         logger.info(f"Loaded sequence for UUID: {uuid}")
     
-    # Load UUID to Prompt mapping
     uuid_prompt_map = pd.read_csv(uuid_prompts_csv)
     
-    # Load Prompt to Expected_Response mapping
     prompt_response_map = pd.read_csv(prompt_info_csv)
     
-    # Load reference sequences
     reference_sequences: Dict[str, str] = {}
     for record in SeqIO.parse(reference_fasta, "fasta"):
         reference_sequences[record.id] = str(record.seq)
@@ -337,34 +321,28 @@ def process_operon_sequences(
     
     results: List[SequenceResult] = []
     
-    # Process each input sequence
     for uuid, generated_seq in input_sequences.items():
         try:
-            # Find Prompt for UUID
             prompt_match = uuid_prompt_map[uuid_prompt_map['UUID'] == uuid]
             if prompt_match.empty:
                 logger.warning(f"No matching prompt found for UUID: {uuid}")
                 continue
             prompt = prompt_match['Prompt'].iloc[0]
             
-            # Find Expected_Response for Prompt
             response_match = prompt_response_map[prompt_response_map['Prompt'] == prompt]
             if response_match.empty:
                 logger.warning(f"No matching expected response found for prompt: {prompt}")
                 continue
             expected_response = response_match['Expected_Response'].iloc[0]
             
-            # Get reference sequence for Expected_Response
             reference_seq = reference_sequences.get(expected_response)
             if not reference_seq:
                 logger.warning(f"No reference sequence found for expected response: {expected_response}")
                 continue
             
-            # Calculate sequence identity
             sequence_identity = calculate_sequence_identity(generated_seq, reference_seq, mafft_path)
             logger.info(f"Calculated sequence identity for {uuid}: {sequence_identity}%")
             
-            # Create and store result
             result = SequenceResult(
                 UUID=uuid,
                 Generated_Sequence=generated_seq,
@@ -379,12 +357,10 @@ def process_operon_sequences(
             logger.error(f"Error processing UUID {uuid}: {str(e)}")
             continue
 
-    # Save results
     output_df = pd.DataFrame([vars(r) for r in results])
     output_df.to_csv(output_msa_csv, index=False)
     logger.info(f"Results saved to {output_msa_csv}")
     
-    # Create and save summary statistics
     create_summary_statistics(output_df, output_summary_csv)
     logger.info(f"Summary statistics saved to {output_summary_csv}")
  
@@ -404,43 +380,41 @@ def run_pipeline(config_file: str) -> None:
 
     """
 
-    # Load configuration
     with open(config_path) as f:
         config_dict = json.load(f)
     config = Config(**config_dict)
     
-    # Generate sequences
-    # prompt_seqs = read_prompts(config.input_prompts, config.batched, config.batch_size)
-    # model, tokenizer = model_load(config.model_name)
+    prompt_seqs = read_prompts(config.input_prompts, config.batched, config.batch_size)
+    model, tokenizer = model_load(config.model_name)
     
     
-    # batch_data = sample_model(
-    #     prompt_batches=prompt_seqs,
-    #     model=model,
-    #     tokenizer=tokenizer,
-    #     file_save_location=config.evo_gen_seqs_file_save_location,
-    #     n_tokens=config.n_tokens,
-    #     temp=config.temperature,
-    #     top_k=config.top_k,
-    #     batched=config.batched,
-    #     n_sample_per_prompt=config.n_sample_per_prompt,
-    #     force_prompt_threshold=2
-    # )
-    # prompts, sequences, scores, ids = batch_data
+    batch_data = sample_model(
+        prompt_batches=prompt_seqs,
+        model=model,
+        tokenizer=tokenizer,
+        file_save_location=config.evo_gen_seqs_file_save_location,
+        n_tokens=config.n_tokens,
+        temp=config.temperature,
+        top_k=config.top_k,
+        batched=config.batched,
+        n_sample_per_prompt=config.n_sample_per_prompt,
+        force_prompt_threshold=2
+    )
+    prompts, sequences, scores, ids = batch_data
     
-    # final_sequences = get_rc(sequences, rc_truth=config.rc_truth, return_both=config.return_both)
-    # make_fasta(final_sequences, prompts, ids, config.all_seqs_fasta)
+    final_sequences = get_rc(sequences, rc_truth=config.rc_truth, return_both=config.return_both)
+    make_fasta(final_sequences, prompts, ids, config.all_seqs_fasta)
 
-    # run_prodigal(config.all_seqs_fasta, config.proteins_file, config.orfs_file)
-    # filter_protein_fasta(
-    #     config.proteins_file,
-    #     config.filtered_proteins_file,
-    #     config.segmasker_path,
-    #     config.filter_min_length,
-    #     config.filter_max_length,
-    #     config.filter_partial_bool, 
-    #     config.segmasker_threshold
-    # )
+    run_prodigal(config.all_seqs_fasta, config.proteins_file, config.orfs_file)
+    filter_protein_fasta(
+        config.proteins_file,
+        config.filtered_proteins_file,
+        config.segmasker_path,
+        config.filter_min_length,
+        config.filter_max_length,
+        config.filter_partial_bool, 
+        config.segmasker_threshold
+    )
     align_and_save_closest_match(
         config.filtered_proteins_file,
         config.reference_seqs,

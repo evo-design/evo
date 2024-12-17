@@ -141,12 +141,10 @@ def calculate_sequence_identity(seq1: str, seq2: str, mafft_path: str = "mafft")
    if not seq1 or not seq2:
        return None
 
-   # Create SeqRecord objects
    record1 = SeqRecord(Seq(seq1), id="seq1")
    record2 = SeqRecord(Seq(seq2), id="seq2")
        
    try:
-       # Run alignment
        aligned_seq1, aligned_seq2, identity = align_pair(record1, record2, mafft_path)
        return identity * 100
            
@@ -169,30 +167,24 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
            - Aligned second sequence (string)
            - Sequence identity (float between 0-1)
    """
-   # Create temporary FASTA for the pair
    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.fasta') as tmp_fasta:
        SeqIO.write([query_record, ref_record], tmp_fasta, "fasta")
        tmp_fasta_name = tmp_fasta.name
 
    try:
-       # Run MAFFT alignment
        result = subprocess.run(
            [mafft_path, tmp_fasta_name],
            capture_output=True,
            text=True,
            check=True
        )
-       
-       # Save alignment output
        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as aligned_file:
            aligned_file.write(result.stdout)
            aligned_file_name = aligned_file.name
        
-       # Parse alignment
        alignment = AlignIO.read(aligned_file_name, "fasta")
        aligned_seq1, aligned_seq2 = alignment[0].seq, alignment[1].seq
        
-       # Calculate sequence identity (ignoring gaps)
        identity_count = sum(1 for a, b in zip(aligned_seq1, aligned_seq2)
                           if a != '-' and b != '-' and a == b)
        aligned_length = sum(1 for a, b in zip(aligned_seq1, aligned_seq2)
@@ -202,7 +194,6 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
        return str(aligned_seq1), str(aligned_seq2), identity
        
    finally:
-       # Clean up temporary files
        for fname in [tmp_fasta_name, aligned_file_name]:
            try:
                os.remove(fname)
@@ -237,7 +228,6 @@ def align_and_save_closest_match(
        filtered_fasta: FASTA file containing query sequences that had matches
            above the identity threshold
    """
-   # Load reference sequences
    reference_seqs = {
        record.id: record
        for record in SeqIO.parse(reference_fasta, "fasta")
@@ -250,15 +240,13 @@ def align_and_save_closest_match(
        best_identity = 0.0
        best_match = None
        
-       # Find best matching reference sequence
        for ref_id, ref_record in reference_seqs.items():
            _, _, identity = align_pair(record, ref_record, mafft_path)
-           identity *= 100  # Convert to percentage
+           identity *= 100  
            if identity > best_identity:
                best_identity = identity
                best_match = ref_id
        
-       # Save results if above threshold
        if best_identity >= identity_threshold:
            results.append({
                'query_id': record.id,
@@ -267,7 +255,6 @@ def align_and_save_closest_match(
            })
            filtered_records.append(record)
 
-   # Save results
    pd.DataFrame(results).to_csv(output_csv, index=False)
    SeqIO.write(filtered_records, filtered_fasta, "fasta")
 
@@ -286,10 +273,8 @@ def calculate_sequence_identity_w_prompt(seq1: str, seq2: str, mafft_path: str =
    if not seq1 or not seq2:
        return 0.0
    
-   # Create temporary files
    tmp_fasta = None
    try:
-       # Write sequences to temp fasta
        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.fasta') as f:
            tmp_fasta = f.name
            SeqIO.write([
@@ -297,7 +282,6 @@ def calculate_sequence_identity_w_prompt(seq1: str, seq2: str, mafft_path: str =
                SeqRecord(Seq(seq2), id="seq2")
            ], f, "fasta")
        
-       # Run MAFFT
        try:
            result = subprocess.run(
                [mafft_path, "--quiet", tmp_fasta],
@@ -308,12 +292,10 @@ def calculate_sequence_identity_w_prompt(seq1: str, seq2: str, mafft_path: str =
        except (subprocess.CalledProcessError, FileNotFoundError):
            return 0.0
            
-       # Parse aligned sequences
        aligned = list(SeqIO.parse(io.StringIO(result.stdout), "fasta"))
        if len(aligned) != 2:
            return 0.0
            
-       # Calculate identity
        aligned_seq1 = str(aligned[0].seq)
        aligned_seq2 = str(aligned[1].seq)
        
@@ -321,7 +303,6 @@ def calculate_sequence_identity_w_prompt(seq1: str, seq2: str, mafft_path: str =
        return (matches / len(aligned_seq1)) * 100
        
    finally:
-       # Cleanup
        if tmp_fasta and os.path.exists(tmp_fasta):
            try:
                os.unlink(tmp_fasta)
@@ -332,36 +313,20 @@ def calculate_non_prompt_sequence_identity(input_aa: str, reference_aa: str, pro
     """
     Calculate sequence identity for the non-prompt portion using MAFFT alignment.
     """
-    # Trim prompt DNA to nearest codon and translate to AA
     prompt_dna_trimmed = prompt_dna[:-(len(prompt_dna) % 3)] if len(prompt_dna) % 3 != 0 else prompt_dna
     prompt_aa = str(Seq(prompt_dna_trimmed).translate())
     
-    print("Prompt AA:", prompt_aa)
-    print("Input AA start:", input_aa[:50])  # Show first 50 chars
-    print("Reference AA start:", reference_aa[:50])
     
-    # Find where prompt ends in the AA sequences
     if prompt_aa not in input_aa or prompt_aa not in reference_aa:
-        print("Prompt not found in sequences!")
         return 0.0
         
-    # Get indices where prompt ends
     input_start = input_aa.index(prompt_aa) + len(prompt_aa)
     ref_start = reference_aa.index(prompt_aa) + len(prompt_aa)
     
-    print("Input start index:", input_start)
-    print("Reference start index:", ref_start)
-    
-    # Get the remaining sequences after the prompt
     input_non_prompt = input_aa[input_start:]
     ref_non_prompt = reference_aa[ref_start:]
     
-    print("Input non-prompt:", input_non_prompt[:50])
-    print("Reference non-prompt:", ref_non_prompt[:50])
-    
-    # Calculate identity using MAFFT
     identity = calculate_sequence_identity(input_non_prompt, ref_non_prompt, mafft_path)
-    print("Calculated identity:", identity)
     
     return identity
         
@@ -379,13 +344,11 @@ def create_summary_statistics(results_df: pd.DataFrame, output_path: Path) -> No
         logger.error("No results to process. Exiting.")
         return
     
-    # Convert to numeric and replace None with NaN
     results_df['Non_Prompt_Sequence_Identity'] = pd.to_numeric(
         results_df['Non_Prompt_Sequence_Identity'], 
         errors='coerce'
     )
     
-    # Group by required columns and calculate stats
     summary_stats = (
         results_df.groupby(['Prompt', 'Protein_Label', 'Length_Percentage'])
         .agg(
@@ -398,14 +361,11 @@ def create_summary_statistics(results_df: pd.DataFrame, output_path: Path) -> No
             prompt_length=('Prompt_Length', 'first')
         )
     )
-    
-    # Reset index to make Prompt, Protein_Label, and Length_Percentage regular columns
+
     summary_stats = summary_stats.reset_index()
-    
-    # Fill NaN values with 0
+
     summary_stats = summary_stats.fillna(0)
     
-    # Round numerical columns to 2 decimal places
     numeric_cols = [
         'avg_full_identity', 'std_full_identity',
         'avg_non_prompt_identity', 'std_non_prompt_identity'
@@ -452,12 +412,10 @@ def process_gene_completion_sequences(
         output_summary_csv: Summary statistics grouped by Protein_Label and 
             Length_Percentage, including means and standard deviations
     """
-    # Load sequences and mappings
     input_sequences: Dict[str, str] = {
         record.id.split(' ')[0].split('_')[0]: str(record.seq).replace("*", "")
         for record in SeqIO.parse(input_fasta, "fasta")
     }
-    print(input_sequences)
     reference_sequences: Dict[str, str] = {
         record.id: str(record.seq)
         for record in SeqIO.parse(reference_fasta, "fasta")
@@ -466,7 +424,6 @@ def process_gene_completion_sequences(
     prompt_info_df = pd.read_csv(prompt_info_csv)
     
     results: List[SequenceResult] = []
-    # Process each sequence
     for uuid_val, input_seq in input_sequences.items():
         try:
             prompt_row = uuid_prompts_df[uuid_prompts_df['UUID'] == uuid_val]
@@ -480,7 +437,6 @@ def process_gene_completion_sequences(
             if info_row.empty:
                 continue
                 
-            # Create sequence result
             result = SequenceResult(
                 UUID=uuid_val,
                 Input_Sequence=input_seq,
@@ -507,7 +463,6 @@ def process_gene_completion_sequences(
             logger.error(f"Error processing UUID {uuid_val}: {str(e)}")
             continue
 
-    # Save results
     output_df = pd.DataFrame([vars(r) for r in results])
     output_df.to_csv(output_csv, index=False)
     create_summary_statistics(output_df, output_summary_csv)

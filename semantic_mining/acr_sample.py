@@ -55,8 +55,6 @@ class Config:
     filter_max_length: int # Maximum length of protein to keep during filtering
     filter_partial_bool: bool # True if partial ORFs should be removed during downstream filtering, only set to True if -p meta flag is not used
     segmasker_threshold: float # Proportion of protein sequence that can be low-complexity for sequence to be kept during filtering 
-    run_msa: bool # True if MSA against a list of reference sequences should be run during filtering
-    seq_identity_match_threshold: float # If running MSA, minimum sequence identity that must exist between generated protein sequence and any reference sequence
     run_esm_fold: bool # True if protein sequences should be folded during filtering
     plddt_threshold: float  # Minimum pLDDT value of folded protein sequence to keep during filtering
     ptm_threshold: float # Minimum pTM value of folded protein sequence to keep during filtering

@@ -53,8 +53,6 @@ class Config:
     filter_max_length: int # Maximum length of protein to keep during filtering
     filter_partial_bool: bool # True if partial ORFs should be removed during downstream filtering, , only set to True if -p meta flag is not used
     segmasker_threshold: float # Proportion of protein sequence that can be low-complexity for sequence to be kept during filtering 
-    run_msa: bool # True if MSA against a list of reference sequences should be run during filtering
-    seq_identity_match_threshold: float # If running MSA, minimum sequence identity that must exist between generated protein sequence and any reference sequence
     run_esm_fold: bool # True if protein sequences should be folded during filtering
     plddt_threshold: float  # Minimum pLDDT value of folded protein sequence to keep during filtering
     ptm_threshold: float # Minimum pTM value of folded protein sequence to keep during filtering
@@ -64,7 +62,6 @@ class Config:
         """Create Config instance from dictionary."""
         return cls(**config_dict)
 
-print('here')
 
 def identify_unique_pairs(df: pd.DataFrame, output_csv: str) -> pd.DataFrame:
     """
@@ -77,10 +74,8 @@ def identify_unique_pairs(df: pd.DataFrame, output_csv: str) -> pd.DataFrame:
     Returns:
     pd.DataFrame: DataFrame containing unique pairs of proteins.
     """
-    # Extract alphanumeric codes from sequence descriptions
     df['Root_ID'] = df['Evo Sequence ID'].str.extract(r'([A-Za-z0-9]+)_')
 
-    # Group by Root_ID and get all pairs of proteins with the same Root_ID
     grouped = df.groupby('Root_ID')
     
     unique_pairs = []
@@ -98,17 +93,14 @@ def identify_unique_pairs(df: pd.DataFrame, output_csv: str) -> pd.DataFrame:
                         'Amino Acid Sequence 2': sequences[j]
                     })
 
-    # Create a DataFrame from the unique pairs
     unique_pairs_df = pd.DataFrame(unique_pairs)
 
-    # Drop duplicates just in case
     unique_pairs_df = unique_pairs_df.drop_duplicates()
 
-    # Save the DataFrame to a CSV file
     unique_pairs_df.to_csv(output_csv, index=False)
 
     return unique_pairs_df
-print('here')
+
 def csv_to_cofold_fasta(input_csv: str, cofold_fasta: str, 
                               root_id_col: str = 'Root_ID', 
                               sequence1_col: str = 'Amino Acid Sequence 1', 
@@ -135,14 +127,12 @@ def csv_to_cofold_fasta(input_csv: str, cofold_fasta: str,
             {sequence2}
     """
     try:
-        # Read and validate CSV
         df = pd.read_csv(input_csv)
         required_cols = [root_id_col, sequence1_col, sequence2_col, sequence1_id_col, sequence2_id_col]
         for col in required_cols:
             if col not in df.columns:
                 raise KeyError(f"Column '{col}' not found in the CSV file.")
 
-        # Get unique pairs while maintaining all necessary columns
         unique_pairs = df[required_cols].drop_duplicates()
         seen_pairs = set()
         unique_rows = []
@@ -153,21 +143,17 @@ def csv_to_cofold_fasta(input_csv: str, cofold_fasta: str,
                 seen_pairs.add(pair)
                 unique_rows.append(row)
 
-        # Write FASTA file with processed headers
         with open(cofold_fasta, 'w') as fasta_file:
             for row in unique_rows:
-                # Extract numbers after underscores from IDs
                 tox_number = row[sequence1_id_col].split('_')[1].split()[0]
                 antitox_number = row[sequence2_id_col].split('_')[1].split()[0]
                 root_id = row[root_id_col]
                 
-                # Create header with required format
                 header = f">{root_id},{tox_number},{antitox_number}"
                 
                 seq1 = row[sequence1_col]
                 seq2 = row[sequence2_col]
                 
-                # Write sequence entry
                 fasta_file.write(f"{header}\n{seq1}:\n{seq2}\n")
 
         print(f"Processing complete. Output written to '{cofold_fasta}'.")
@@ -178,7 +164,7 @@ def csv_to_cofold_fasta(input_csv: str, cofold_fasta: str,
         print(f"Column error: {str(e)}")
     except Exception as e:
         print(f"An error occurred: {str(e)}")
-print('here')
+
 def load_config(config_file: str) -> Config:
     """Load configuration from JSON file."""
     try:
@@ -189,7 +175,7 @@ def load_config(config_file: str) -> Config:
         raise FileNotFoundError(f"Configuration file not found: {config_file}")
     except json.JSONDecodeError:
         raise ValueError(f"Invalid JSON in configuration file: {config_file}")
-print('here')
+    
 def process_sequences(
     config: Config,
     model: StripedHyena,
@@ -248,7 +234,7 @@ def process_sequences(
         config.segmasker_threshold
     )
     print('Base protein filtering complete', flush=True)
-print('here')
+
 def process_folds(config: Config) -> pd.DataFrame:
     """Process sequence alignments and protein folding."""
     print('Starting protein folding...', flush=True)
@@ -265,7 +251,7 @@ def process_folds(config: Config) -> pd.DataFrame:
     )
     
     return filtered_folds
-print('here')
+
 def main(config_file: str) -> None: 
     try:
         # Load configuration
@@ -284,9 +270,8 @@ def main(config_file: str) -> None:
     except Exception as e:
         print(f"Error in pipeline execution: {str(e)}", flush=True)
         raise
-print('here')
+
 if __name__ == "__main__":
-    print('HEREEEE')
     import sys
     if len(sys.argv) != 2:
         print("Usage: python scripts/toxin_antitoxin_sample.py <config_file_path>")

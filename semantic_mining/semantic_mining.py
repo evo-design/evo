@@ -169,8 +169,8 @@ def run_model(
        batched=batched,
        device=device,
        force_prompt_threshold=force_prompt_threshold,
-       cached_generation=True,  # Enable caching for efficiency
-       verbose=True  # Show generation progress
+       cached_generation=True,
+       verbose=True 
    )
 
 def read_evo_seqs(gen_seqs: List[str]) -> Tuple[List[str], List[str], List[float], List[str]]:
@@ -191,7 +191,7 @@ def read_evo_seqs(gen_seqs: List[str]) -> Tuple[List[str], List[str], List[float
     scores = []
     for row in gen_seqs:
         try:
-            scores.append(float(row[3]))  # Score is in position 3
+            scores.append(float(row[3]))
         except (ValueError, TypeError):
             scores.append(0.0)
             
@@ -201,45 +201,6 @@ def read_evo_seqs(gen_seqs: List[str]) -> Tuple[List[str], List[str], List[float
         scores,                         # converted scores
         [row[0] for row in gen_seqs]    # UUIDs
     )
-
-    # filtered_prompts = []
-    # filtered_sequences = []
-    # filtered_scores = []
-    # filtered_ids = []
-
-    # for row in gen_seqs:
-    #     # Skip if row is incomplete
-    #     if len(row) < 4:
-    #         continue
-
-    #     sequence_id, prompt, sequence, score = row
-
-    #     # Check if prompt and sequence are non-empty strings
-    #     if not isinstance(prompt, str) or not prompt.strip():
-    #         continue
-    #     if not isinstance(sequence, str) or not sequence.strip():
-    #         continue
-
-    #     # Attempt to parse the score and filter out NaN or invalid scores
-    #     try:
-    #         score_value = float(score)
-    #         if math.isnan(score_value):
-    #             continue
-    #     except (ValueError, TypeError):
-    #         continue
-
-    #     # Add valid rows to filtered lists
-    #     filtered_prompts.append(prompt.strip())
-    #     filtered_sequences.append(sequence.strip())
-    #     filtered_scores.append(score_value)
-    #     filtered_ids.append(sequence_id)
-
-    # return (
-    #     filtered_prompts,
-    #     filtered_sequences,
-    #     filtered_scores,
-    #     filtered_ids,
-    # )
 
 def get_rc(sequences: List[str],rc_truth: bool = True, return_both: bool = True) -> List[Seq]:
     """
@@ -360,7 +321,7 @@ def sample_model(
                 print('Created batches')
                 valid_batch = [seq for seq in batch if isinstance(seq, str) and seq.strip()]
                 if not valid_batch:
-                    continue  # Skip empty or invalid batches
+                    continue
                 genseqs, genscores = run_model(
                     valid_batch, model, tokenizer, n_tokens, temp,
                     top_k, batched, device, force_prompt_threshold
@@ -374,7 +335,6 @@ def sample_model(
                 ]
                 print(current_batch)
                 coupledpromptseqscores.extend(current_batch)
-                print('HERE')
     else:
         for i in range(n_sample_per_prompt):
             genseqs, genscores = run_model(
@@ -433,16 +393,14 @@ def run_prodigal(
        containing the prodigal predicted ORFs and protein sequences called from the
        input sequnces. 
     """
-    # Verify Prodigal exists
     if not Path(prodigal_path).exists():
         raise FileNotFoundError(f"Prodigal not found at: {prodigal_path}")
         
-    # Construct and run Prodigal command
     cmd = [
         prodigal_path,
         '-i', input_file,
-        '-a', output_file,   # Protein translations
-        '-d', output_orf_file,  # Nucleotide sequences
+        '-a', output_file,
+        '-d', output_orf_file,
         '-p', 'meta'  # Metagenomics mode
     ]
     
@@ -566,7 +524,6 @@ def filter_protein_fasta(
     
     def passes_quality_filters(seq: str, segmasker_threshold: float) -> bool:
         """Apply all filters to a sequence."""
-        # Filters length of sequuence to range of reasonable protein lengths
         return not any([
             is_segmasked_greater_than_threshold(seq, segmasker_threshold),
             is_highly_repetitive(seq),
@@ -611,15 +568,12 @@ def run_hmmsearch(input_fasta: str, hmm_folder: str, output_csv: str, n_threads:
     """
     results = []
     
-    # Parse the input FASTA file to retrieve sequences
     sequences = {record.id: str(record.seq) for record in SeqIO.parse(input_fasta, "fasta")}
 
-    # Iterate over each HMM file in the folder
     for hmm_file in os.listdir(hmm_folder):
         if hmm_file.endswith('.hmm3'):
             hmm_path = os.path.join(hmm_folder, hmm_file)
 
-            # Create temporary files for the hmmsearch output
             with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.txt') as temp_output:
                 temp_output_path = temp_output.name
             
@@ -639,7 +593,7 @@ def run_hmmsearch(input_fasta: str, hmm_folder: str, output_csv: str, n_threads:
                     for line in f:
                         if not line.startswith("#"):
                             fields = line.split()
-                            if len(fields) >= 20:  # Ensure the line has enough columns
+                            if len(fields) >= 20:
                                 seq_id = fields[0]
                                 e_value = float(fields[6])
                                 seq_desc = fields[3]
@@ -658,16 +612,13 @@ def run_hmmsearch(input_fasta: str, hmm_folder: str, output_csv: str, n_threads:
             except FileNotFoundError:
                 print('hmmsearch is not installed. Please install it using: "conda install -c bioconda hmmer"')
             
-            # Clean up: Remove the temporary files
             try:
                 os.remove(temp_output_path)
             except OSError as e:
                 print(f"Error removing temporary file {temp_output_path}: {e}")
 
-    # Convert results to DataFrame
     df_results = pd.DataFrame(results)
 
-    # Save results to CSV
     df_results.to_csv(output_csv, index=False)
 
     return df_results
@@ -702,8 +653,6 @@ def get_pfam_hits(input_fasta: str, pfam_db_path: str, output_csv: str, n_thread
             * .txt file with hmmscan output
     """
     aa_sequences = list(SeqIO.parse(input_fasta, "fasta"))
-
-    # Create temporary file to associate amino acid sqeuences with pfam hits by saving amino acid sequence as descriptor
     with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.faa') as tmp_aa_desc_file:
         records = []
         for aa_seq in aa_sequences:
@@ -712,7 +661,6 @@ def get_pfam_hits(input_fasta: str, pfam_db_path: str, output_csv: str, n_thread
         SeqIO.write(records, tmp_aa_desc_file, "fasta")
         aa_desc_file = tmp_aa_desc_file.name
 
-    # Run hmmscan on the output amino acid sequences and save results to a df
     with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.txt') as tmp_hmmscan_output:
         hmmscan_output_file = tmp_hmmscan_output.name
         cmd = f"hmmscan --domtblout {hmmscan_output_file} --cpu {n_threads} {pfam_db_path} {aa_desc_file}"
@@ -729,7 +677,6 @@ def get_pfam_hits(input_fasta: str, pfam_db_path: str, output_csv: str, n_thread
             sys.stderr.write('The HMM for Pfam is not installed. Please download and install it from: https://www.ebi.ac.uk/interpro/download/pfam/')
             raise
 
-        # Read hmmscan output into a df
         columns = [
             "target name", "accession", "query name", "amino acid sequence", "E-value", "score", "bias",
             "c-Evalue", "i-Evalue", "score", "bias", "hmmfrom", "hmm to", "alifrom", "ali to", 
@@ -740,7 +687,7 @@ def get_pfam_hits(input_fasta: str, pfam_db_path: str, output_csv: str, n_thread
             for line in f:
                 if not line.startswith("#"):
                     fields = line.split()
-                    if len(fields) >= len(columns) - 1:  # Adjust if the last column is a free text
+                    if len(fields) >= len(columns) - 1: 
                         pfam.append(fields[:len(columns)-1] + [' '.join(fields[len(columns)-1:])])
         
         if verbose: 
@@ -751,14 +698,11 @@ def get_pfam_hits(input_fasta: str, pfam_db_path: str, output_csv: str, n_thread
 
         pfam_hits = pd.DataFrame(pfam, columns=columns)
 
-    # Add sequence descriptions to the dataframe
     seq_descriptions = {record.seq: record.description for record in aa_sequences}
     pfam_hits['sequence description'] = pfam_hits['amino acid sequence'].map(seq_descriptions)
 
-    # Save the dataframe to a CSV file
     pfam_hits.to_csv(output_csv, index=False)
 
-    # Clean up temporary files
     tmp_aa_desc_file.close()
     tmp_hmmscan_output.close()
     for tmp_file in [tmp_aa_desc_file.name, tmp_hmmscan_output.name]:
@@ -793,12 +737,10 @@ def fold_proteins(input_file: str, output_file: str, device: str = 'cuda:0') -> 
         - Confidence metrics for structure quality assessment
     """
 
-    # Load the model and tokenizer
     esmfold = EsmForProteinFolding.from_pretrained("facebook/esmfold_v1")
     esmfold = esmfold.to(device)
     esmfold.esm = esmfold.esm.half()
     esmfold_tokenizer = AutoTokenizer.from_pretrained("facebook/esmfold_v1")
-    # Fold all coding sequences in input
     folds = []
     for record in SeqIO.parse(input_file, "fasta"):
         protein_seq = str(record.seq).rstrip('*')  # remove stop codon
@@ -872,7 +814,6 @@ def run_foldseek(
         - Target PDB identifiers
         - Confidence scores
     """
-    # Create a temporary directory for intermediate files
     with tempfile.TemporaryDirectory() as tmp_path:
         results = []
 
@@ -880,14 +821,12 @@ def run_foldseek(
             pdb_data = row['PDB Output']
             pdb_name = row['Evo Sequence ID'].split()[0]
 
-            # Create temporary files for Foldseek input/output
             with tempfile.NamedTemporaryFile(delete=False, dir=tmp_path, suffix=".tsv") as tmp_file:
                 output_loc = tmp_file.name
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdb') as temp_pdb:
                 temp_pdb_path = temp_pdb.name
                 temp_pdb.write(pdb_data.encode('utf-8'))
 
-            # Configure and run Foldseek search
             cmd = [
                 'foldseek', 'easy-search',
                 temp_pdb_path,
@@ -907,10 +846,8 @@ def run_foldseek(
                 print(f"Output: {e.output}")
                 print(f"Error output: {e.stderr}")
 
-            # Clean up PDB file
             os.remove(temp_pdb_path)
 
-            # Parse results
             column_names = ['query', 'target', 'alntmscore', 'lddt', 'prob']
             tsv_df = pd.read_csv(output_loc, sep='\t', header=None, names=column_names)
             
@@ -925,13 +862,11 @@ def run_foldseek(
                     tsv_row['prob']
                 ])
 
-            # Clean up TSV file
             try:
                 os.remove(output_loc)
             except OSError as e:
                 print(f"Error: {e.strerror} - {e.filename}")
 
-        # Create and save results DataFrame
         foldseek_df = pd.DataFrame(
             results,
             columns=['Amino Acid Sequence', 'Sequence ID', 'Query', 'Target',
@@ -962,10 +897,9 @@ def filt_foldseek(
         - Amino Acid Sequence: Protein sequence
         - Sequence ID: Sequence identifier
     """
-    filtered_data: List[Dict[str, str]] = []  # List to hold filtered sequences
-    unique_entries = set()  # Track unique sequence-ID pairs
+    filtered_data: List[Dict[str, str]] = []
+    unique_entries = set() 
 
-    # Filter based on TM-score and remove duplicates
     for _, row in foldseek_df.iterrows():
         if row['Alignment TM-score'] > tm_score_threshold:
             entry = (row['Amino Acid Sequence'], row['Sequence ID'])
@@ -976,7 +910,6 @@ def filt_foldseek(
                     'Sequence ID': row['Sequence ID']
                 })
 
-    # Save filtered results to CSV
     with open(output_csv, 'w', newline='') as csvfile:
         fieldnames = ['Amino Acid Sequence', 'Sequence ID']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -1023,18 +956,15 @@ def run_mmseqs_search(
         - Temporary files in result_dir (removed after search)
         - Log file in result_dir/mmseqs_search.log
     """
-    # Validate inputs
     if not os.path.isfile(fasta_file):
         raise FileNotFoundError(f"FASTA file not found: {fasta_file}")
     if not os.path.isdir(mmseqs_db) and not os.path.isfile(mmseqs_db):
         raise FileNotFoundError(f"MMseqs database not found: {mmseqs_db}")
     
-    # Create result directory
     os.makedirs(result_dir, exist_ok=True)
     mmseqs_out = os.path.join(result_dir, "mmseqs_result.m8")
     log_file = os.path.join(result_dir, "mmseqs_search.log")
     
-    # Construct and run MMseqs2 command
     cmd = [
         "mmseqs", "easy-search",
         fasta_file,
@@ -1055,18 +985,16 @@ def run_mmseqs_search(
         print(f"MMseqs2 search failed with error: {e}")
         raise
         
-    # Parse results and combine with sequences
     sequences = {record.id: str(record.seq) for record in SeqIO.parse(fasta_file, "fasta")}
     
     hits = []
     with open(mmseqs_out, "r") as f:
         for line in f:
             fields = line.strip().split('\t')
-            if fields[0] in sequences:  # Only include hits for existing sequences
-                fields.insert(1, sequences[fields[0]])  # Add sequence after query ID
+            if fields[0] in sequences: 
+                fields.insert(1, sequences[fields[0]])  
                 hits.append(fields)
     
-    # Create DataFrame with results
     columns = [
         "Query", "Sequence", "Target", "Fident", "Alnlen", "Mismatch",
         "Gapopen", "Qstart", "Qend", "Tstart", "Tend", "E-value",
@@ -1075,7 +1003,6 @@ def run_mmseqs_search(
     
     df = pd.DataFrame(hits, columns=columns)
     
-    # Convert numeric columns
     numeric_cols = ["Fident", "Alnlen", "Mismatch", "Gapopen", "E-value"]
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col])
@@ -1118,13 +1045,11 @@ def align_sequences_mafft(
     """
     def align_pair(query_record: SeqRecord, ref_record: SeqRecord) -> Tuple[str, str, float]:
         """Align a pair of sequences using MAFFT."""
-        # Create temporary FASTA for the pair
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.fasta') as tmp_fasta:
             SeqIO.write([query_record, ref_record], tmp_fasta, "fasta")
             tmp_fasta_name = tmp_fasta.name
 
         try:
-            # Run MAFFT alignment
             result = subprocess.run(
                 [mafft_path, tmp_fasta_name],
                 capture_output=True,
@@ -1132,16 +1057,13 @@ def align_sequences_mafft(
                 check=True
             )
             
-            # Save alignment output
             with tempfile.NamedTemporaryFile(mode='w+', delete=False) as aligned_file:
                 aligned_file.write(result.stdout)
                 aligned_file_name = aligned_file.name
 
-            # Parse alignment
             alignment = AlignIO.read(aligned_file_name, "fasta")
             aligned_seq1, aligned_seq2 = alignment[0].seq, alignment[1].seq
 
-            # Calculate sequence identity (ignoring gaps)
             identity_count = sum(1 for a, b in zip(aligned_seq1, aligned_seq2)
                                if a != '-' and b != '-' and a == b)
             aligned_length = sum(1 for a, b in zip(aligned_seq1, aligned_seq2)
@@ -1151,25 +1073,20 @@ def align_sequences_mafft(
             return str(aligned_seq1), str(aligned_seq2), identity
 
         finally:
-            # Clean up temporary files
             for fname in [tmp_fasta_name, aligned_file_name]:
                 try:
                     os.remove(fname)
                 except (OSError, UnboundLocalError):
                     pass
 
-    # Create output directories if needed
     for filepath in [output_csv, output_fasta]:
         os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
 
-    # Read input sequences
     query_sequences = list(SeqIO.parse(input_fasta, "fasta"))
     
-    # Initialize results storage
     alignment_results = []
     filtered_sequences = []
 
-    # Process each query sequence
     for query_record in query_sequences:
         print(f"Processing sequence: {query_record.description}")
         
@@ -1177,7 +1094,6 @@ def align_sequences_mafft(
         best_identity = 0
         best_alignment = None
         
-        # Compare against each reference sequence
         for ref_record in SeqIO.parse(reference_fasta, "fasta"):
             aligned_query, aligned_ref, identity = align_pair(query_record, ref_record)
             
@@ -1186,7 +1102,6 @@ def align_sequences_mafft(
                 best_match = ref_record
                 best_alignment = (aligned_query, aligned_ref)
         
-        # Store results if above threshold
         if best_identity >= identity_threshold:
             alignment_results.append({
                 'Input Sequence Description': query_record.description,
@@ -1198,10 +1113,8 @@ def align_sequences_mafft(
                 'Aligned Reference Sequence': best_alignment[1]
             })
             
-            # Keep sequence for FASTA output
             filtered_sequences.append(query_record)
     
-    # Save results
     if alignment_results:
         pd.DataFrame(alignment_results).to_csv(output_csv, index=False)
         
