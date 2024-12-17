@@ -18,16 +18,7 @@ We provide the following model checkpoints:
 
 ## News
 
-We identified and fixed an issue related to a wrong permutation of some projections, which affects generation quality. To use the new model revision with HuggingFace, please load as follows:
-```python
-config = AutoConfig.from_pretrained(model_name, trust_remote_code=True, revision="1.1_fix")
-model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    config=config,
-    trust_remote_code=True,
-    revision="1.1_fix"
-)
-```
+**December 17, 2024:** We have found and fixed a bug in the code for Evo model inference affecting package versions from Nov 15-Dec 16, 2024, which has been corrected in release versions 0.3 and above. If you installed the package during this timeframe, please upgrade to correct the issue.
 
 ## Contents
 
