@@ -2,6 +2,7 @@
 Usage: 
 python -m scripts.00_farm_activations --data_dir outputs --model evo-1-8k-base --batch_size 2 --max_seq_length 8192
 """
+import time
 import torch
 import numpy as np
 import os
@@ -55,29 +56,25 @@ def register_hooks(model, data_dir, base_model):
     
     return hooks, activations
 
-def save_batch_activations(activations, seq_lengths, data_dir, dataset_name, model_name, batch_idx):
+def save_batch_activations(activations, seq_lengths, experiment_metadata, data_dir, dataset_name, model_name, timestamp, batch_idx):
     """Save activations for each module to separate files."""
     for act in activations:
-        output_dir = Path(data_dir) / dataset_name / model_name / act['name'] 
+        output_dir = Path(data_dir) / dataset_name / model_name / act['name'] / timestamp
         output_dir.mkdir(parents=True, exist_ok=True)
+        is_metadata_saved = Path.exists(output_dir / 'metadata.json')
+        if not is_metadata_saved:
+            save_metadata(experiment_metadata, act, output_dir)
 
         output_path = output_dir / f"activations_{batch_idx}.pt"
         torch.save((act['output'], seq_lengths), output_path)
 
-def save_metadata(args, data_dir, dataset_name, base_model):
+def save_metadata(experiment_metadata, activation, output_dir):
     """Save metadata about the inference run."""
-    metadata = {
-        'batch_size': args.batch_size,
-        'data_dir': data_dir,
-        'base_model': base_model,
-        'dataset_split': args.dataset_split
-    }
-    
-    metadata_dir = Path(data_dir) / dataset_name / base_model
-    metadata_dir.mkdir(parents=True, exist_ok=True)
-    metadata_path = metadata_dir / 'metadata.json'
+    metadata_path = output_dir / 'metadata.json'
+    experiment_metadata['module_name'] = activation['name']
+    experiment_metadata['embed_dim'] = activation['output'].shape[-1]
     with open(metadata_path, 'w') as f:
-        json.dump(metadata, f, indent=2)
+        json.dump(experiment_metadata, f, indent=4)
 
 def run_inference(args):
     # Setup model
@@ -94,9 +91,16 @@ def run_inference(args):
 
     # Register hooks
     hooks, activations = register_hooks(model, args.data_dir, args.model)
-    
-    # Save metadata
-    save_metadata(args, args.data_dir, dataset_name, args.model)
+    timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+    experiment_metadata = {
+        'data_dir': args.data_dir,
+        'dataset_split': args.dataset_split,
+        'dataset_subsplit': dataset_subsplit,
+        'batch_size': args.batch_size,
+        'max_seq_length': args.max_seq_length,
+        'base_model': args.model,
+        'timestamp': timestamp,
+    }
     
     # Run inference in batches
     try:
@@ -118,7 +122,7 @@ def run_inference(args):
                 _, _ = model(input_ids)  # Forward pass triggers hooks
                 
                 # Save activations for this batch
-                save_batch_activations(activations, seq_lengths, args.data_dir, dataset_name, args.model, batch_idx)
+                save_batch_activations(activations, seq_lengths, experiment_metadata, args.data_dir, dataset_name, args.model, timestamp, batch_idx)
                 
                 # Clear activations to free memory
                 activations.clear()
