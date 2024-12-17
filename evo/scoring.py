@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from stripedhyena.model import StripedHyena
 from stripedhyena.tokenizer import CharLevelTokenizer
@@ -10,27 +10,39 @@ def prepare_batch(
     seqs: List[str],
     tokenizer: CharLevelTokenizer,
     prepend_bos: bool = True,
-    device: str = 'cuda:0'
+    device: str = 'cuda:0',
+    max_seq_length: Optional[int] = None,
 ) -> Tuple[torch.Tensor, List[int]]:
     """
     Takes in a list of sequences, tokenizes them, and puts them in a tensor batch.
     If the sequences have differing lengths, then pad up to the maximum sequence length.
     """
-    seq_lengths = [ len(seq) for seq in seqs ]
-    max_seq_length = max(seq_lengths)
+    data_seq_lengths = [len(seq) for seq in seqs]
+    data_max_seq_length = min(max(data_seq_lengths), max_seq_length) if max_seq_length is not None else max(data_seq_lengths)
 
     input_ids = []
-    for seq in seqs:
-        padding = [tokenizer.pad_id] * (max_seq_length - len(seq))
-        input_ids.append(
-            torch.tensor(
-                ([tokenizer.eod_id] * int(prepend_bos)) + tokenizer.tokenize(seq) + padding,
-                dtype=torch.long,
-            ).to(device).unsqueeze(0)
+    final_data_seq_lengths = []
+    for seq in seqs:   
+        seq_input_ids = torch.tensor(
+            ([tokenizer.eod_id] * int(prepend_bos)) + tokenizer.tokenize(seq),
+            dtype=torch.long,
         )
-    input_ids = torch.cat(input_ids, dim=0)
+        # Truncate if max_seq_length is provided and the sequence is too long.
+        if max_seq_length is not None and seq_input_ids.shape[0] > max_seq_length:
+            seq_input_ids = seq_input_ids[:max_seq_length]
 
-    return input_ids, seq_lengths
+        # Store the length of the sequence after truncation.
+        final_data_seq_lengths.append(seq_input_ids.shape[0])
+
+        # Pad if the sequence is too short.
+        padding = torch.tensor([tokenizer.pad_id] * (data_max_seq_length - seq_input_ids.shape[0]), dtype=torch.long)
+        seq_input_ids = torch.cat([seq_input_ids, padding], dim=0)
+        input_ids.append(seq_input_ids)
+    # input_ids = torch.cat(input_ids, dim=0).unsqueeze(0)
+    input_ids = torch.stack(input_ids, dim=0)
+    input_ids = input_ids.to(device)
+
+    return input_ids, torch.tensor(final_data_seq_lengths, dtype=torch.long)
 
 
 def logits_to_logprobs(

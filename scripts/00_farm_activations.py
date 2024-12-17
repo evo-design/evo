@@ -1,6 +1,6 @@
 """
 Usage: 
-python -m scripts.example_inference --data_dir outputs --model evo-1-8k-base --batch_size 2
+python -m scripts.00_farm_activations --data_dir outputs --model evo-1-8k-base --batch_size 2 --max_seq_length 8192
 """
 import torch
 import numpy as np
@@ -27,6 +27,8 @@ def parse_args():
     parser.add_argument('--dataset_split', type=str, default='sample',
                        choices=['sample', 'stage1', 'stage2'],
                        help='Which split of open-genome to use')
+    parser.add_argument('--max_seq_length', type=int, default=None,
+                       help='Maximum sequence length to use')
     return parser.parse_args()
 
 def register_hooks(model, data_dir, base_model):
@@ -39,10 +41,6 @@ def register_hooks(model, data_dir, base_model):
             # Create output directory for this module            
             def hook_fn(module, input, output, name=name):
                 # Store the module name and save directory in the activation
-                print("Calling hook for", name)
-                print("Module type:", str(type(module)))
-                print("Module name:", name)
-                print("Module output:", output)
                 if isinstance(output, tuple):
                     activation = output[0]  # Usually the first element is the tensor we want
                 else:
@@ -52,21 +50,21 @@ def register_hooks(model, data_dir, base_model):
                     'name': name,
                     'output': activation.to(torch.float32).detach().cpu()
                 })
-            print("Registering hook for", name)
+
             hooks.append(module.register_forward_hook(hook_fn))
     
     return hooks, activations
 
-def save_batch_activations(activations, data_dir, dataset_name, model_name, batch_idx):
+def save_batch_activations(activations, seq_lengths, data_dir, dataset_name, model_name, batch_idx):
     """Save activations for each module to separate files."""
     for act in activations:
         output_dir = Path(data_dir) / dataset_name / model_name / act['name'] 
         output_dir.mkdir(parents=True, exist_ok=True)
 
         output_path = output_dir / f"activations_{batch_idx}.pt"
-        torch.save(act['output'], output_path)
+        torch.save((act['output'], seq_lengths), output_path)
 
-def save_metadata(args, data_dir, base_model):
+def save_metadata(args, data_dir, dataset_name, base_model):
     """Save metadata about the inference run."""
     metadata = {
         'batch_size': args.batch_size,
@@ -75,7 +73,9 @@ def save_metadata(args, data_dir, base_model):
         'dataset_split': args.dataset_split
     }
     
-    metadata_path = Path(data_dir) / base_model / 'metadata.json'
+    metadata_dir = Path(data_dir) / dataset_name / base_model
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+    metadata_path = metadata_dir / 'metadata.json'
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
 
@@ -88,17 +88,15 @@ def run_inference(args):
     model.eval()
 
     # Setup data
-    
     dataset_subsplit = "validation"
-    dataset_name = f"{DATASET_ID}-{args.dataset_split}-{dataset_subsplit}"
+    dataset_name = f"{DATASET_ID}-{args.dataset_split}-{dataset_subsplit}".replace("/", "_")
     dataset = load_dataset(DATASET_ID, args.dataset_split)[dataset_subsplit]
 
     # Register hooks
-    breakpoint()
     hooks, activations = register_hooks(model, args.data_dir, args.model)
     
     # Save metadata
-    save_metadata(args, args.data_dir, args.model)
+    save_metadata(args, args.data_dir, dataset_name, args.model)
     
     # Run inference in batches
     try:
@@ -110,6 +108,7 @@ def run_inference(args):
             input_ids, seq_lengths = prepare_batch(
                 batch['text'],
                 tokenizer,
+                max_seq_length=args.max_seq_length,
                 prepend_bos=False,
                 device=device
             )
@@ -119,7 +118,7 @@ def run_inference(args):
                 _, _ = model(input_ids)  # Forward pass triggers hooks
                 
                 # Save activations for this batch
-                save_batch_activations(activations, args.data_dir, dataset_name, args.model, batch_idx)
+                save_batch_activations(activations, seq_lengths, args.data_dir, dataset_name, args.model, batch_idx)
                 
                 # Clear activations to free memory
                 activations.clear()
