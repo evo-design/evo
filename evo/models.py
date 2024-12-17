@@ -84,7 +84,7 @@ def load_checkpoint(
     model_config = AutoConfig.from_pretrained(
         hf_model_name,
         trust_remote_code=True,
-        revision='1.1_fix' if re.match(r'evo-1-.*-base', hf_model_name) else 'main',
+        revision='1.1_fix' if re.match(r'evo-1-.*-base', model_name) else 'main',
     )
     model_config.use_cache = True
 
@@ -94,7 +94,7 @@ def load_checkpoint(
         hf_model_name,
         config=model_config,
         trust_remote_code=True,
-        revision='1.1_fix' if re.match(r'evo-1-.*-base', hf_model_name) else 'main',
+        revision='1.1_fix' if re.match(r'evo-1-.*-base', model_name) else 'main',
     )
 
     # Load model state dict & cleanup.
