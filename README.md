@@ -6,11 +6,12 @@ Evo is a biological foundation model capable of long-context modeling and design
 Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
 Evo has 7 billion parameters and is trained on [OpenGenome](https://huggingface.co/datasets/LongSafari/open-genome), a prokaryotic whole-genome dataset containing ~300 billion tokens.
 
-We describe Evo in the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.science.org/doi/10.1126/science.ado9336).
+We describe Evo in the papers [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.science.org/doi/10.1126/science.ado9336) and [“Semantic mining of functional _de novo_ genes from a genomic language model”](TODO).
 
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
 |----------------------------------------|-------------|
+| `evo-1.5-8k-base`   | A model pretrained with 8,192 context obtained by extending the pretraining of `evo-1-8k-base` to process 50% more training data. |
 | `evo-1-8k-base`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
 | `evo-1-131k-base`   | A model pretrained with 131,072 context using `evo-1-8k-base` as the base model. We use this model to reason about and generate sequences at the genome scale. |
 | `evo-1-8k-crispr`   | A model finetuned using `evo-1-8k-base` as the base model to generate CRISPR-Cas systems. |
@@ -201,5 +202,13 @@ Please cite the following publication when referencing Evo.
    year = {2024},
    doi = {10.1126/science.ado9336},
    URL = {https://www.science.org/doi/abs/10.1126/science.ado9336},
+}
+```
+
+Please cite the following publication when referencing Evo 1.5.
+
+```
+@article{merchant2024semantic,
+TODO
 }
 ```
