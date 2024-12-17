@@ -1,4 +1,4 @@
-# Semantic Mining for DNA Sequences
+# Semantic Mining
 
 This directory contains scripts for semantic mining - an approach that harnesses genomic context-based prompting to generate DNA sequences enriched for targeted biological functions. Using Evo, these tools can enable function-guided design of proteins through a process analogous to genome mining via guilt-by-association. When done at a high-throughput scale, semantic mining  produce sequences that contain 1) diversified variants of existing proteins, 2) unannotated natural proteins with the same functionality as the target system, and 3) highly divergent proteins with retained functionality.
 
@@ -49,6 +49,10 @@ Implements semantic mining for toxin-antitoxin system design:
 - Configuration specified via config file described in script
 - See example configurations in `sample_configs/acr_sample.json`
 
+### semantic_mining.py
+Contains several functions that can be used for sampling and filtering generated sequences:
+- Functions can be imported into separate scripts to generate new pipelines for sampling and filtering
+
 ## Usage
 
 All scripts use configuration files to specify inputs and parameters. Example configurations are provided in the `sample_configs/` directory. Each script should take roughly 15 minutes to run using the example prompts.
@@ -56,7 +60,7 @@ All scripts use configuration files to specify inputs and parameters. Example co
 To run any script, connect to a GPU and run:
 ```bash
 conda activate semantic_mining
-python python script_name.py --config path/to/config.json
+python script_name.py --config path/to/config.json
 ```
 
 ## Example Configurations and Prompts
@@ -70,4 +74,4 @@ Reference sequences for the operon and gene completion scripts are provided in t
 ## Related Documentation
 
 For more comprehensive documentation, please refer to:
-- The main repository README for setting up generation with Evo
+- The [Main Repository README](https://github.com/evo-design/evo/blob/main/README.md) for setting up generation with Evo
