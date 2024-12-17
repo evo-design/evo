@@ -1,7 +1,7 @@
 """
 Usage:
 python -m scripts.01_train_sae \
-    --data_dir outputs/LongSafari_open-genome-sample-validation/evo-1-8k-base/blocks.8/2024-12-16_22-01-15 \
+    --data_dir outputs/LongSafari_open-genome-sample-validation/evo-1-8k-base/blocks.8/2024-12-16_23-53-19 \
     --batch_size 32 \
     --learning_rate 1e-3 \
     --l1_coefficient 1e-3 \
@@ -55,12 +55,18 @@ class ActivationsDataset(Dataset):
     def __init__(self, data_dir):
         self.data_dir = Path(data_dir)
         
-        # Load metadata
-        metadata_file = self.data_dir / "metadata.json"
+        # Load metadata from rank_0 (assuming all ranks have same metadata)
+        metadata_file = next(self.data_dir.glob("rank_*/metadata.json"))
         with open(metadata_file, 'r') as f:
             self.metadata = json.load(f)
         
-        self.data_files = sorted(list(self.data_dir.glob("*.pt")))
+        # Collect files from all rank directories
+        self.data_files = []
+        for rank_dir in sorted(self.data_dir.glob("rank_*")):
+            if rank_dir.is_dir():
+                rank_files = sorted(list(rank_dir.glob("*.pt")))
+                self.data_files.extend(rank_files)
+        
         if not self.data_files:
             raise ValueError(f"No activation files found in {data_dir}")
         
@@ -80,7 +86,7 @@ class ActivationsDataset(Dataset):
         remaining_idx = idx % (self.file_batch_size * self.seq_length)
         batch_idx = remaining_idx // self.seq_length
         seq_idx = remaining_idx % self.seq_length
-        
+
         # Load file if needed
         activations, _ = torch.load(self.data_files[file_idx])
         
@@ -134,6 +140,7 @@ def main():
     
     # Setup dataset and dataloader
     dataset = ActivationsDataset(args.data_dir)
+
     dataloader = DataLoader(
         dataset,
         batch_size=args.batch_size,
@@ -151,8 +158,7 @@ def main():
     # Setup optimizer
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    input_metadata = json.load(open(Path(args.data_dir) / "metadata.json", 'r'))
-
+    input_metadata = dataset.metadata
     base_model = input_metadata['base_model']
     module_name = input_metadata['module_name']
     timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
