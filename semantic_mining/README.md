@@ -56,7 +56,7 @@ All scripts use configuration files to specify inputs and parameters. Example co
 To run any script, connect to a GPU and run:
 ```bash
 conda activate semantic_mining
-python script_name.py --config path/to/config.yaml
+python python script_name.py --config path/to/config.json
 ```
 
 ## Example Configurations and Prompts
@@ -64,6 +64,8 @@ python script_name.py --config path/to/config.yaml
 Example configuration files are provided in the `sample_configs/` directory. 
 
 Example prompts are provided in the `sample_prompts/` directory.
+
+Reference sequences for the operon and gene completion scripts are provided in the `sample_reference_sequences` directory.
 
 ## Related Documentation
 

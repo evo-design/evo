@@ -3,8 +3,8 @@ Acr sampling pipeline using Evo.
 
 Usage: python acr_sample.py <config_file_path>
 """
+import argparse
 import json
-import sys
 import pandas as pd
 from typing import List, Tuple, Dict, Any, Union, TypeVar
 from dataclasses import dataclass
@@ -171,8 +171,11 @@ def main(config_file: str) -> None:
         raise
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <config_file>")
-        sys.exit(1)
-    
-    main(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Run sampling script with a configuration file.")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to the configuration file (e.g., path/to/config.json)"
+    )
+    args = parser.parse_args()
+    main(args.config)

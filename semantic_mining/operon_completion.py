@@ -3,12 +3,11 @@ Operon completion eval pipeline using Evo.
 
 Usage: python operon_completion.py <config_file_path>
 """
+import argparse
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any, NamedTuple, Union
 from dataclasses import dataclass
 import logging
-import numpy as np
-import sys
 import json
 import os
 import pandas as pd
@@ -436,9 +435,11 @@ def run_pipeline(config_file: str) -> None:
     logger.info("Pipeline execution completed successfully")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python scripts/operon_completion.py <config_file_path>")
-        sys.exit(1)
-        
-    config_path = Path(sys.argv[1])
-    run_pipeline(config_path)
+    parser = argparse.ArgumentParser(description="Run sampling script with a configuration file.")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to the configuration file (e.g., path/to/config.json)"
+    )
+    args = parser.parse_args()
+    run_pipeline(args.config)

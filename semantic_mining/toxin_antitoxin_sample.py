@@ -3,7 +3,7 @@ Toxin-antitoxin sampling pipeline using Evo.
 
 Usage: python toxin_antitoxin_sample.py <config_file_path>
 """
-import sys
+import argparse
 import json
 import pandas as pd
 from transformers import (
@@ -272,9 +272,11 @@ def main(config_file: str) -> None:
         raise
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 2:
-        print("Usage: python scripts/toxin_antitoxin_sample.py <config_file_path>")
-        sys.exit(1)
-    config_file = sys.argv[1]
-    main(config_file)
+    parser = argparse.ArgumentParser(description="Run sampling script with a configuration file.")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to the configuration file (e.g., path/to/config.json)"
+    )
+    args = parser.parse_args()
+    main(args.config)

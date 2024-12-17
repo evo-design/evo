@@ -3,11 +3,11 @@ Gene completion eval pipeline using Evo.
 
 Usage: python gene_completion.py <config_file_path>
 """
+import argparse
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple,  NamedTuple, Union
 from dataclasses import dataclass
 import logging
-import sys
 import json
 import os
 import pandas as pd
@@ -16,7 +16,6 @@ from Bio import SeqIO, AlignIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import subprocess
-import math
 
 from semantic_mining import (
     read_prompts, model_load,sample_model, get_rc, 
@@ -539,9 +538,11 @@ def run_pipeline(config_path: Path) -> None:
     )
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python scripts/gene_completion.py <config_file_path>")
-        sys.exit(1)
-        
-    config_path = Path(sys.argv[1])
-    run_pipeline(config_path)
+    parser = argparse.ArgumentParser(description="Run sampling script with a configuration file.")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to the configuration file (e.g., path/to/config.json)"
+    )
+    args = parser.parse_args()
+    run_pipeline(args.config)
