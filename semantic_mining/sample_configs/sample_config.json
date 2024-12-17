@@ -1,0 +1,32 @@
+{
+    "input_prompts": "/data/prompts/test_prompts.csv",
+    "evo_gen_seqs_file_save_location": "/data/generated/sequences.csv", 
+    "all_seqs_fasta": "/data/sequences/all_sequences.fasta",
+    "proteins_file": "/data/sequences/proteins.fasta",
+    "orfs_file": "/data/sequences/orfs.fasta",
+    "filtered_proteins_file": "/data/sequences/filtered_proteins.fasta",
+    "reference_seqs": "/data/reference/conserved_protein_seqs.fasta",
+    "msa_filtered_proteins_fasta": "/data/alignment/msa_protein_seqs.fasta",
+    "sequence_alignment_csv": "/data/alignment/msa_protein_seqs.csv",
+    "output_msa_csv": "/data/results/analysis_results.csv",
+    "output_summary_csv": "/data/results/summary_statistics.csv",
+    "segmasker_path": "/usr/local/bin/segmasker",
+    "mafft_path": "/usr/local/bin/mafft",
+
+    "model_name": "evo_1.5_8k_hf",
+    "n_tokens": 1000,
+    "temperature": 0.7,
+    "top_k": 4,
+    "batched": true,
+    "batch_size": 5,
+    "n_sample_per_prompt": 1,
+
+    "rc_truth": false,
+    "return_both": false,
+    "filter_min_length": 50,
+    "filter_max_length": 800,
+    "filter_partial_bool": false,
+    "segmasker_threshold": 0.1,
+    "run_msa": true,
+    "seq_identity_match_threshold": 20.0
+}

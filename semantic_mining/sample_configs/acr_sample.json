@@ -1,0 +1,29 @@
+{
+    "input_prompts": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/prompts/test_prompts.csv",    
+    "evo_gen_seqs_file_save_location": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/test/generated_sequences.csv",
+    "all_seqs_fasta": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/test/all_sequences.fasta",
+    "proteins_file": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/test/proteins.fasta",
+    "orfs_file": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/test/orfs.fasta",
+    "filtered_proteins_file": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/test/filtered_proteins.fasta",
+    "segmasker_path": "/home/adititm/ncbi-blast-2.16.0+/bin/segmasker",
+    "output_folds_file": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/test/ouput_folds.csv",
+    "output_filtered_folds": "/large_storage/hielab/userspace/adititm/semantic_mining_data/prompt_completion/test/filtered_folds.csv",
+
+    "model_name": "evo_1.5_8k_hf",
+    "n_tokens": 1000,
+    "temperature": 0.7,
+    "top_k": 4,
+    "batched": true,
+    "batch_size": 10,
+    "n_sample_per_prompt": 10,
+
+    "rc_truth": false,
+    "return_both": false,
+    "filter_min_length": 50,
+    "filter_max_length": 800,
+    "filter_partial_bool": false,
+    "segmasker_threshold": 0.1,
+    "run_esm_fold": true,
+    "plddt_threshold": 0.3,
+    "ptm_threshold": 0.2
+}
