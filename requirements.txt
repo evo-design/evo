@@ -1,4 +1,4 @@
-stripedhyena==0.2.2
+stripedhyena @ git+https://github.com/sophiaKivelson/stripedhyena.git
 biopython
 pandas
 triton
