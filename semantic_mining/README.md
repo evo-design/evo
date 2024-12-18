@@ -75,3 +75,19 @@ Reference sequences for the operon and gene completion scripts are provided in t
 
 For more comprehensive documentation, please refer to:
 - The [Main Repository README](https://github.com/evo-design/evo/blob/main/README.md) for setting up generation with Evo
+
+## Citation
+
+Please cite the following publication when referencing semantic mining or Evo 1.5.
+
+```
+@article {merchant2024semantic,
+   author = {Merchant, Aditi T and King, Samuel H and Nguyen, Eric and Hie, Brian L},
+   title = {Semantic mining of functional de novo genes from a genomic language model},
+   year = {2024},
+   doi = {10.1101/2024.12.17.628962},
+   publisher = {Cold Spring Harbor Laboratory},
+   URL = {https://www.biorxiv.org/content/early/2024/12/18/2024.12.17.628962},
+   journal = {bioRxiv}
+}
+```
