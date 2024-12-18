@@ -9,7 +9,7 @@
     "output_folds_file": "/semantic_mining/test/ouput_folds.csv",
     "output_filtered_folds": "/semantic_mining/test/filtered_folds.csv",
 
-    "model_name": "evo_1.5_8k_hf",
+    "model_name": "evo-1.5-8k-base",
     "n_tokens": 1000,
     "temperature": 0.7,
     "top_k": 4,
