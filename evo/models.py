@@ -9,6 +9,7 @@ from stripedhyena.tokenizer import CharLevelTokenizer
 
 
 MODEL_NAMES = [
+    'evo-1.5-8k-base',
     'evo-1-8k-base',
     'evo-1-131k-base',
     'evo-1-8k-crispr',
@@ -35,7 +36,8 @@ class Evo:
 
         if model_name == 'evo-1-8k-base' or \
            model_name == 'evo-1-8k-crispr' or \
-           model_name == 'evo-1-8k-transposon':
+           model_name == 'evo-1-8k-transposon' or \
+           model_name == 'evo-1.5-8k-base':
             config_path = 'configs/evo-1-8k-base_inference.yml'
         elif model_name == 'evo-1-131k-base':
             config_path = 'configs/evo-1-131k-base_inference.yml'
@@ -59,6 +61,7 @@ class Evo:
 
         
 HF_MODEL_NAME_MAP = {
+    'evo-1.5-8k-base': 'evo-design/evo-1.5-8k-base',
     'evo-1-8k-base': 'togethercomputer/evo-1-8k-base',
     'evo-1-131k-base': 'togethercomputer/evo-1-131k-base',
     'evo-1-8k-crispr': 'LongSafari/evo-1-8k-crispr',
