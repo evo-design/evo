@@ -8,9 +8,12 @@ Evo has 7 billion parameters and is trained on [OpenGenome](https://huggingface.
 
 We describe Evo in the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.science.org/doi/10.1126/science.ado9336).
 
+We describe Evo 1.5 in the paper [“Semantic mining of functional _de novo_ genes from a genomic language model”](https://www.biorxiv.org/content/10.1101/2024.12.17.628962). We used the Evo 1.5 model to generate [SynGenome](https://evodesign.org/syngenome/), the first AI-generated genomics database containing over 100 billion base pairs of synthetic DNA sequences.
+
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
 |----------------------------------------|-------------|
+| `evo-1.5-8k-base`   | A model pretrained with 8,192 context obtained by extending the pretraining of `evo-1-8k-base` to process 50% more training data. |
 | `evo-1-8k-base`     | A model pretrained with 8,192 context. We use this model as the base model for molecular-scale finetuning tasks. |
 | `evo-1-131k-base`   | A model pretrained with 131,072 context using `evo-1-8k-base` as the base model. We use this model to reason about and generate sequences at the genome scale. |
 | `evo-1-8k-crispr`   | A model finetuned using `evo-1-8k-base` as the base model to generate CRISPR-Cas systems. |
@@ -192,5 +195,19 @@ Please cite the following publication when referencing Evo.
    year = {2024},
    doi = {10.1126/science.ado9336},
    URL = {https://www.science.org/doi/abs/10.1126/science.ado9336},
+}
+```
+
+Please cite the following publication when referencing Evo 1.5.
+
+```
+@article {merchant2024semantic,
+   author = {Merchant, Aditi T and King, Samuel H and Nguyen, Eric and Hie, Brian L},
+   title = {Semantic mining of functional de novo genes from a genomic language model},
+   year = {2024},
+   doi = {10.1101/2024.12.17.628962},
+   publisher = {Cold Spring Harbor Laboratory},
+   URL = {https://www.biorxiv.org/content/early/2024/12/18/2024.12.17.628962},
+   journal = {bioRxiv}
 }
 ```
