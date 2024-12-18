@@ -6,7 +6,9 @@ Evo is a biological foundation model capable of long-context modeling and design
 Evo uses the [StripedHyena architecture](https://github.com/togethercomputer/stripedhyena) to enable modeling of sequences at a single-nucleotide, byte-level resolution with near-linear scaling of compute and memory relative to context length.
 Evo has 7 billion parameters and is trained on [OpenGenome](https://huggingface.co/datasets/LongSafari/open-genome), a prokaryotic whole-genome dataset containing ~300 billion tokens.
 
-We describe Evo in the papers [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.science.org/doi/10.1126/science.ado9336) and [“Semantic mining of functional _de novo_ genes from a genomic language model”](TODO).
+We describe Evo in the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.science.org/doi/10.1126/science.ado9336).
+
+We describe Evo 1.5 in the paper [“Semantic mining of functional _de novo_ genes from a genomic language model”](https://www.biorxiv.org/content/10.1101/2024.12.17.628962). We used the Evo 1.5 model to generate [SynGenome](https://evodesign.org/syngenome/), the first AI-generated genomics database containing over 100 billion base pairs of synthetic DNA sequences.
 
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
@@ -199,7 +201,13 @@ Please cite the following publication when referencing Evo.
 Please cite the following publication when referencing Evo 1.5.
 
 ```
-@article{merchant2024semantic,
-TODO
+@article {merchant2024semantic,
+   author = {Merchant, Aditi T and King, Samuel H and Nguyen, Eric and Hie, Brian L},
+   title = {Semantic mining of functional de novo genes from a genomic language model},
+   year = {2024},
+   doi = {10.1101/2024.12.17.628962},
+   publisher = {Cold Spring Harbor Laboratory},
+   URL = {https://www.biorxiv.org/content/early/2024/12/18/2024.12.17.628962},
+   journal = {bioRxiv}
 }
 ```
