@@ -1,5 +1,7 @@
 # Evo: DNA foundation modeling from molecular to genome scale
 
+**We have developed a new model called Evo 2 that extends the Evo 1 model and its ideas to all domains of life. Please see [https://github.com/arcinstitute/evo2](https://github.com/arcinstitute/evo2) for more details.**
+
 ![Evo](evo.jpg)
 
 Evo is a biological foundation model capable of long-context modeling and design.
