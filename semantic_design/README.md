@@ -1,8 +1,8 @@
-# Semantic Mining
+# Semantic Design
 
-This directory contains scripts for semantic mining - an approach that harnesses genomic context-based prompting to generate DNA sequences enriched for targeted biological functions. Using Evo, these tools can enable function-guided design of proteins through a process analogous to genome mining via guilt-by-association. When done at a high-throughput scale, semantic mining  produce sequences that contain 1) diversified variants of existing proteins, 2) unannotated natural proteins with the same functionality as the target system, and 3) highly divergent proteins with retained functionality.
+This directory contains scripts for semantic design - an approach that harnesses genomic context-based prompting to generate DNA sequences enriched for targeted biological functions. Using Evo, these tools can enable function-guided design of proteins through a process analogous to genome mining via guilt-by-association. When done at a high-throughput scale, semantic design may produce sequences that contain 1) diversified variants of existing proteins, 2) unannotated natural proteins with the same functionality as the target system, and 3) highly divergent proteins with retained functionality.
 
-The scripts in this directory provide examples of analyses conducted using semantic mining:
+The scripts in this directory provide examples of analyses conducted using semantic design:
 - Gene completion evaluation for highly conserved genes
 - Operon completion analysis for multi-gene sequences
 - Generation and filtering of toxin-antitoxin sequences
@@ -14,8 +14,8 @@ The scripts in this directory provide examples of analyses conducted using seman
 1. Create the conda environment using the provided configuration. To install flash-attn, you may need to 
 connect to a GPU. Installation may take up to 3 hours:
 ```bash
-conda env create -f semantic_mining.yml
-conda activate semantic_mining
+conda env create -f semantic_design.yml
+conda activate semantic_design
 ```
 
 2. Install Evo if it is not already installed. This should take no more than a few minutes:
@@ -38,18 +38,18 @@ Assesses in-context genomic design ability through operon completion:
 - See example configurations in `sample_configs/operon_completion.json`
 
 ### toxin_antitoxin_sample.py
-Implements semantic mining for toxin-antitoxin system design:
+Implements semantic design for toxin-antitoxin system design:
 - Produces FASTA file with toxin-antitoxin candidates which can be fed into ESMFold/AlphaFold2 to co-fold candidates
 - Configuration specified via config file described in script
 - See example configurations in `sample_configs/toxin_antitoxin_sample.json`
 
 ### acr_sample.py
-Implements semantic mining for toxin-antitoxin system design:
+Implements semantic design for toxin-antitoxin system design:
 - Produces csv file with Acr candidates for input into PaCRISPR
 - Configuration specified via config file described in script
 - See example configurations in `sample_configs/acr_sample.json`
 
-### semantic_mining.py
+### semantic_design.py
 Contains several functions that can be used for sampling and filtering generated sequences:
 - Functions can be imported into separate scripts to generate new pipelines for sampling and filtering
 
@@ -59,7 +59,7 @@ All scripts use configuration files to specify inputs and parameters. Example co
 
 To run any script, connect to a GPU and run:
 ```bash
-conda activate semantic_mining
+conda activate semantic_design
 python script_name.py --config path/to/config.json
 ```
 
@@ -78,7 +78,7 @@ For more comprehensive documentation, please refer to:
 
 ## Citation
 
-Please cite the following publication when referencing semantic mining or Evo 1.5.
+Please cite the following publication when referencing semantic design or Evo 1.5.
 
 ```
 @article {merchant2024semantic,

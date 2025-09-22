@@ -45,9 +45,15 @@ We provide the following model checkpoints:
 Evo is based on [StripedHyena](https://github.com/togethercomputer/stripedhyena/tree/main).
 
 Evo uses [FlashAttention-2](https://github.com/Dao-AILab/flash-attention), which may not work on all GPU architectures.
-Please consult the [FlashAttention GitHub repository](https://github.com/Dao-AILab/flash-attention#installation-and-features) for the current list of supported GPUs.
+Please consult the [FlashAttention GitHub repository](https://github.com/Dao-AILab/flash-attention#installation-and-features) for the current list of supported GPUs. Currently, Evo supports FlashAttention versions <= 2.7.4.post0.
 
-Make sure to install the correct [PyTorch version](https://pytorch.org/) on your system.
+Make sure to install the correct [PyTorch version](https://pytorch.org/) on your system. PyTorch versions >= 2.7.0 and < 2.8.0a0 are supported by FlashAttention 2.7.4.
+
+We recommend using a fresh conda environment to install these prerequisites. Below is an example of how to install these:
+```bash
+conda install -c nvidia cuda-nvcc cuda-cudart-dev
+conda install -c conda-forge flash-attn=2.7.4
+```
 
 ### Installation
 
@@ -62,13 +68,31 @@ cd evo/
 pip install .
 ```
 
-We recommend that you install the PyTorch library first, before installing all other dependencies (due to dependency issues of the `flash-attn` library; see, e.g., this [issue](https://github.com/Dao-AILab/flash-attention/issues/246)).
+If you are not using the conda-forge FlashAttention installation shown above, which will automatically install PyTorch, we recommend that you install the PyTorch library before installing all other dependencies (due to dependency issues of the `flash-attn` library; see, e.g., this [issue](https://github.com/Dao-AILab/flash-attention/issues/246)).
 
 One of our [example scripts](scripts/), demonstrating how to go from generating sequences with Evo to folding proteins ([scripts/generation_to_folding.py](scripts/generation_to_folding.py)), further requires the installation of `prodigal`. We have created an [environment.yml](environment.yml) file for this:
 
 ```bash
 conda env create -f environment.yml
 conda activate evo-design
+```
+
+### Troubleshooting
+
+If you are using [Numpy](https://numpy.org/) versions > 2.2, you may encounter the following error:
+
+```bash
+ValueError: The binary mode of fromstring is removed, use frombuffer instead
+```
+
+To fix this, modify [`tokenizer.py`](https://github.com/togethercomputer/stripedhyena/blob/main/stripedhyena/tokenizer.py#L157) at line 157 in your local installation of [StripedHyena](https://github.com/togethercomputer/stripedhyena) as shown: 
+
+```bash
+# Replace this:
+return list(np.fromstring(text, dtype=np.uint8))
+
+# With this:
+return list(np.frombuffer(text.encode(), dtype=np.uint8))
 ```
 
 ## Usage

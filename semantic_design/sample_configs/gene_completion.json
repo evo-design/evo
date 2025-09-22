@@ -1,0 +1,32 @@
+{
+    "input_prompts": "./sample_prompts/gene_completion_prompts.csv",    
+    "evo_gen_seqs_file_save_location": "/semantic_design/test/generated_sequences.csv",
+    "all_seqs_fasta": "/semantic_design/test/all_sequences.fasta",
+    "proteins_file": "/semantic_design/test/proteins.fasta",
+    "orfs_file": "/semantic_design/test/orfs.fasta",
+    "filtered_proteins_file": "/semantic_design/test/filtered_proteins.fasta",
+    "reference_seqs": "/semantic_design/sample_reference_sequences/rpos_sequences.fasta",
+    "msa_filtered_proteins_fasta": "/semantic_design/test/msa_protein_seqs.fasta",
+    "sequence_alignment_csv": "/semantic_design/test/msa_protein_seqs.csv",
+    "output_msa_csv": "/semantic_design/test/analysis_results.csv",
+    "output_summary_csv": "/semantic_design/test/summary_statistics.csv",
+    "segmasker_path": "/usr/local/bin/ncbi-blast-2.16.0+/bin/segmasker",
+    "mafft_path": "/usr/local/bin/mafft/bin/mafft",
+
+    "model_name": "evo-1.5-8k-base",
+    "n_tokens": 2500,
+    "temperature": 0.7,
+    "top_k": 4,
+    "batched": true,
+    "batch_size": 5,
+    "n_sample_per_prompt": 5,
+
+    "rc_truth": false,
+    "return_both": false,
+    "filter_min_length": 50,
+    "filter_max_length": 1200,
+    "filter_partial_bool": false,
+    "segmasker_threshold": 0.1,
+    "run_msa": true,
+    "seq_identity_match_threshold": 30.0
+}

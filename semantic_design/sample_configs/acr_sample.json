@@ -1,0 +1,29 @@
+{
+    "input_prompts": "./sample_prompts/acr_sample_prompts.csv",    
+    "evo_gen_seqs_file_save_location": "/semantic_design/test/generated_sequences.csv",
+    "all_seqs_fasta": "/semantic_design/test/all_sequences.fasta",
+    "proteins_file": "/semantic_design/test/proteins.fasta",
+    "orfs_file": "/semantic_design/test/orfs.fasta",
+    "filtered_proteins_file": "/semantic_design/test/filtered_proteins.fasta",
+    "segmasker_path": "/usr/bin/ncbi-blast-2.16.0+/bin/segmasker",
+    "output_folds_file": "/semantic_design/test/ouput_folds.csv",
+    "output_filtered_folds": "/semantic_design/test/filtered_folds.csv",
+
+    "model_name": "evo-1.5-8k-base",
+    "n_tokens": 1000,
+    "temperature": 0.7,
+    "top_k": 4,
+    "batched": true,
+    "batch_size": 10,
+    "n_sample_per_prompt": 10,
+
+    "rc_truth": false,
+    "return_both": false,
+    "filter_min_length": 50,
+    "filter_max_length": 800,
+    "filter_partial_bool": false,
+    "segmasker_threshold": 0.1,
+    "run_esm_fold": true,
+    "plddt_threshold": 0.3,
+    "ptm_threshold": 0.2
+}

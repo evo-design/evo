@@ -16,7 +16,7 @@ from transformers import (
 from stripedhyena.model import StripedHyena
 from stripedhyena.tokenizer import CharLevelTokenizer
 
-from semantic_mining import (
+from semantic_design import (
     read_prompts,
     model_load,
     sample_model,
