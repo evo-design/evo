@@ -18,7 +18,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import subprocess
 
-from semantic_mining import read_prompts, model_load, sample_model, get_rc, run_prodigal, filter_protein_fasta
+from semantic_design import read_prompts, model_load, sample_model, get_rc, run_prodigal, filter_protein_fasta
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

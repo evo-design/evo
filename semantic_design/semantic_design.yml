@@ -1,4 +1,4 @@
-name: semantic_mining
+name: semantic_design
 channels:
   - bioconda
   - conda-forge

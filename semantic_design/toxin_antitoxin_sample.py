@@ -13,7 +13,7 @@ from transformers import (
 )
 from dataclasses import dataclass
 from typing import Dict, Any
-from semantic_mining import (
+from semantic_design import (
     read_prompts,
     model_load,
     sample_model,

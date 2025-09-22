@@ -19,7 +19,7 @@ from Bio.SeqRecord import SeqRecord
 from collections import Counter
 import subprocess
 
-from semantic_mining import (
+from semantic_design import (
     read_prompts,
     model_load,
     sample_model,
