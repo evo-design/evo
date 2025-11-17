@@ -1,0 +1,74 @@
+# ###########################################################
+# ### OPERON COMPLETION EVALUATION CONFIGURATION TEMPLATE ###
+# ###########################################################
+#
+# Pipeline steps:
+#   1. Generate operon completions from partial prompts using Evo.
+#   2. Run Prodigal on concatenated sequences to obtain ORFs/proteins.
+#   3. Filter proteins with segmasker, length, and partial-ORF heuristics.
+#   4. Optionally align generated proteins to reference operon proteins via MAFFT,
+#      producing per-gene and per-operon summaries.
+# Requirements: Evo model + GPU, Prodigal, segmasker, MAFFT. Place all outputs in
+# a single `output_dir` for easy inspection.
+#
+# OUTPUT FLOW
+# -----------
+# qc1: Generation log (`generated_sequences.csv`)
+# qc2: DNA FASTA for downstream codon-aware tools (`all_sequences.fasta`)
+# qc3: Prodigal results (`proteins.fasta`, `orfs.fasta`)
+# qc4: Filtered proteins (`filtered_proteins.fasta`)
+# qc5: Optional MAFFT-guided matches (`msa_filtered_proteins.fasta`, `sequence_alignment.csv`)
+# qc6: Operon-level statistics (`msa_results.csv`, `summary_statistics.csv`)
+
+
+###########################################
+### 1. CORE INPUTS AND FILE LOCATIONS  ###
+###########################################
+
+# CSV of operon prompts (column order must match expectations in operon_completion.py)
+input_prompts: ./sample_prompts/operon_completion_prompts.csv
+
+# Reference operon proteins; headers should reference Expected_Response labels
+reference_seqs: ./sample_reference_sequences/modabc_operon_sequences.fasta
+
+# Directory for every generated artifact
+output_dir: ./outputs/operon_completion
+
+# segmasker binary location
+segmasker_path: /usr/local/bin/ncbi-blast-2.16.0+/bin/segmasker
+
+# MAFFT binary location
+mafft_path: /usr/local/bin/mafft/bin/mafft
+
+
+##################################
+### 2. GENERATION PARAMETERS   ###
+##################################
+
+model_name: evo-1.5-8k-base
+n_tokens: 2500
+temperature: 0.7
+top_k: 4
+
+# Use batching to group prompts of equal length
+batched: true
+batch_size: 4
+
+# Only one sample per operon prompt for evaluation (increase for more diversity)
+n_sample_per_prompt: 1
+
+
+#################################################
+### 3. FILTERING + ALIGNMENT CONFIGURATION   ###
+#################################################
+
+rc_truth: false
+return_both: false
+filter_min_length: 50
+filter_max_length: 1200
+filter_partial_bool: false
+segmasker_threshold: 0.1
+
+# Enable MAFFT + reference scoring
+run_msa: true
+seq_identity_match_threshold: 30.0

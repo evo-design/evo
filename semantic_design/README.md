@@ -25,29 +25,42 @@ pip install evo-model
 
 ## Scripts
 
-### gene_completion.py
+### pipelines/gene_completion.py
 Evaluates the model's ability to complete partial sequences of highly conserved genes:
 - Produces CSV file with summary statistics for all gene completions
 - Configuration specified via config file described in script
-- See example configurations in `sample_configs/gene_completion.json`
+- See example configurations in `sample_configs/gene_completion.yaml`
 
-### operon_completion.py
+### pipelines/operon_completion.py
 Assesses in-context genomic design ability through operon completion:
 - Generates CSV containing summary statistics for all operon completions
 - Configuration specified via config file described in script
-- See example configurations in `sample_configs/operon_completion.json`
+- See example configurations in `sample_configs/operon_completion.yaml`
 
-### toxin_antitoxin_sample.py
+### pipelines/toxin_antitoxin_sample.py
 Implements semantic design for toxin-antitoxin system design:
 - Produces FASTA file with toxin-antitoxin candidates which can be fed into ESMFold/AlphaFold2 to co-fold candidates
 - Configuration specified via config file described in script
-- See example configurations in `sample_configs/toxin_antitoxin_sample.json`
+- See example configurations in `sample_configs/toxin_antitoxin_sample.yaml`
 
-### acr_sample.py
+### pipelines/toxin_antitoxin_cofold.py
+Runs ESMFold multimer and pDockQ scoring on paired toxin/antitoxin proteins:
+- Consumes the paired CSV emitted by `toxin_antitoxin_sample.py`
+- Executes folding inside the specified ESM_Fold repo and summarizes pDockQ metrics
+- Requires running inside the environment that provides the ESMFold + PyTorch stack
+- See example configurations in `sample_configs/toxin_antitoxin_cofold.yaml`
+
+### pipelines/type_iii_ta_sample.py
+Implements the Type III toxin-antitoxin sampling and analysis workflow:
+- Follows the standard generation→filter→ESMFold path, then runs tandem-repeat and RNA structure analyses
+- Outputs TRF tables, RNA fold predictions, and candidate TA pairing summaries
+- Configuration specified via YAML (see `sample_configs/type_iii_ta_sample.yaml`)
+
+### pipelines/acr_sample.py
 Implements semantic design for toxin-antitoxin system design:
 - Produces csv file with Acr candidates for input into PaCRISPR
 - Configuration specified via config file described in script
-- See example configurations in `sample_configs/acr_sample.json`
+- See example configurations in `sample_configs/acr_sample.yaml`
 
 ### semantic_design.py
 Contains several functions that can be used for sampling and filtering generated sequences:
@@ -55,12 +68,12 @@ Contains several functions that can be used for sampling and filtering generated
 
 ## Usage
 
-All scripts use configuration files to specify inputs and parameters. Example configurations are provided in the `sample_configs/` directory. Each script should take roughly 15 minutes to run using the example prompts.
+All scripts use YAML configuration files to specify inputs and parameters. Example configurations are provided in the `sample_configs/` directory. Each config now asks for a single `output_dir` instead of numerous file paths—the scripts will create the directory (if necessary) and populate it with consistently named CSV/FASTA outputs. Each script should take roughly 15 minutes to run using the example prompts.
 
 To run any script, connect to a GPU and run:
 ```bash
 conda activate semantic_design
-python script_name.py --config path/to/config.json
+python pipelines/script_name.py --config path/to/config.yaml
 ```
 
 ## Example Configurations and Prompts

@@ -25,7 +25,7 @@ from evo.generation import generate
 
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, EsmForProteinFolding, set_seed
 
-BatchType = List[List[Tuple[str, str, str]]]
+BatchType = Union[List[List[str]], List[str]]
 PromptType = Union[str, List[str]]
 
 
@@ -343,23 +343,35 @@ def sample_model(
                 print(current_batch)
                 coupledpromptseqscores.extend(current_batch)
     else:
-        for i in range(n_sample_per_prompt):
-            genseqs, genscores = run_model(
-                prompt_batches[i],
-                model,
-                tokenizer,
-                n_tokens,
-                temp,
-                top_k,
-                batched,
-                device,
-                force_prompt_threshold,
-            )
-            current_batch = [
-                [uuid.uuid4().hex, prompt, seq, str(score)]
-                for prompt, seq, score in zip([prompt_batches[i]], genseqs, genscores)
-            ]
-            coupledpromptseqscores.extend(current_batch)
+        if isinstance(prompt_batches, str):
+            prompts_list = [prompt_batches]
+        else:
+            prompts_list = prompt_batches
+
+        for prompt in prompts_list:
+            if not isinstance(prompt, str) or not prompt.strip():
+                continue
+            for _ in range(n_sample_per_prompt):
+                genseqs, genscores = run_model(
+                    prompt,
+                    model,
+                    tokenizer,
+                    n_tokens,
+                    temp,
+                    top_k,
+                    batched,
+                    device,
+                    force_prompt_threshold,
+                )
+
+                seq_list = genseqs if isinstance(genseqs, list) else [genseqs]
+                score_list = genscores if isinstance(genscores, list) else [genscores]
+                current_batch = [
+                    [uuid.uuid4().hex, prompt, seq, str(score)]
+                    for seq, score in zip(seq_list, score_list)
+                    if isinstance(seq, str) and seq.strip()
+                ]
+                coupledpromptseqscores.extend(current_batch)
 
     filtered_data = []
     for row in coupledpromptseqscores:
