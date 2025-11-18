@@ -10,7 +10,7 @@ Evo has 7 billion parameters and is trained on [OpenGenome](https://huggingface.
 
 We describe Evo in the paper [“Sequence modeling and design from molecular to genome scale with Evo”](https://www.science.org/doi/10.1126/science.ado9336).
 
-We describe Evo 1.5 in the paper [“Semantic mining of functional _de novo_ genes from a genomic language model”](https://www.biorxiv.org/content/10.1101/2024.12.17.628962). We used the Evo 1.5 model to generate [SynGenome](https://evodesign.org/syngenome/), the first AI-generated genomics database containing over 100 billion base pairs of synthetic DNA sequences.
+We describe Evo 1.5 in the paper [“Semantic design of functional de novo genes from a genomic language model”](https://www.nature.com/articles/s41586-025-09749-7). We used the Evo 1.5 model to generate [SynGenome](https://evodesign.org/syngenome/), the first AI-generated genomics database containing over 100 billion base pairs of synthetic DNA sequences.
 
 We provide the following model checkpoints:
 | Checkpoint Name                        | Description |
