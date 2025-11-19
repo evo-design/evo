@@ -1,0 +1,27 @@
+# #################################################################
+# ### TOXIN–ANTITOXIN CO-FOLDING + PDOCKQ SCORING CONFIG FILE  ###
+# #################################################################
+#
+# This config consumes the paired protein CSV produced by
+# `t2ta_sample.py` (identify_unique_pairs) and then:
+#   1. Converts it into the CSV format required by esmfold_multimer.
+#   2. Runs ESMFold multimer on every toxin/antitoxin combination.
+#   3. Extracts pDockQ, interface plDDT, and contact counts from each PDB.
+#   4. Emits summary CSVs + FASTA containing only high-confidence complexes.
+# Run this script inside the environment where ESMFold + torch are installed.
+#
+# Required inputs ------------------------------------------------------------
+pairs_csv: ./outputs/t2ta/shared_protein_pairs.csv
+output_dir: ./outputs/t2ta_cofold
+
+# Column names in the pairs CSV ---------------------------------------------
+root_id_col: Root_ID
+sequence1_col: Amino Acid Sequence 1
+sequence2_col: Amino Acid Sequence 2
+sequence1_id_col: Evo Sequence ID 1
+sequence2_id_col: Evo Sequence ID 2
+
+# Execution flags -----------------------------------------------------------
+run_esmfold: true        # Disable if you already have PDBs and only need pDockQ
+run_pdockq: true         # Disable to skip scoring/summary generation
+pdockq_threshold: 0.23   # Minimum score for inclusion in high-confidence outputs

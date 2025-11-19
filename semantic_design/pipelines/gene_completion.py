@@ -12,11 +12,8 @@ import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union, Set
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-if str(PACKAGE_ROOT) not in sys.path:
-    sys.path.insert(0, str(PACKAGE_ROOT))
 
 import pandas as pd
 import yaml
@@ -101,6 +98,7 @@ class Config:
     output_summary_csv: Path = field(init=False)
 
     def __post_init__(self) -> None:
+        """Normalize input paths and establish every derived output artifact location."""
         self.input_prompts = Path(self.input_prompts)
         self.reference_seqs = Path(self.reference_seqs)
         self.output_dir = Path(self.output_dir)
@@ -120,7 +118,14 @@ class Config:
 
 
 def load_config(config_path: Path) -> Config:
-    """Load a YAML configuration file."""
+    """Load a YAML configuration file into a Config object.
+
+    Args:
+        config_path: Path to the YAML config.
+
+    Returns:
+        Parsed Config instance with derived paths created.
+    """
     config_path = Path(config_path)
     try:
         with open(config_path, "r") as handle:
@@ -164,6 +169,9 @@ def make_gene_completion_fasta(
         output_file: FASTA format file where each record contains:
             - Header: >sequence_id prompt_text
             - Sequence: prompt_sequence + dna_sequence
+
+    Returns:
+        None. Contents are written to `output_file`.
     """
     dna_seq_records = [
         SeqRecord(Seq(prompt + dna_seq), id=seq_id, description=prompt)
@@ -171,6 +179,91 @@ def make_gene_completion_fasta(
     ]
     with open(output_file, "w") as output_handle:
         SeqIO.write(dna_seq_records, output_handle, "fasta")
+
+
+def filter_orfs_by_prompt(
+    proteins_fasta: Path, orfs_fasta: Path, prompts_csv: Path
+) -> None:
+    """Keep only ORFs (and their proteins) whose nucleotide sequence contains the prompt DNA.
+
+    Args:
+        proteins_fasta: Path to Prodigal-translated protein FASTA.
+        orfs_fasta: Path to Prodigal nucleotide ORF FASTA.
+        prompts_csv: CSV with UUID/prompt pairs (`generated_sequences.csv`).
+
+    Returns:
+        None. The provided FASTA files are overwritten with filtered content.
+    """
+    if not Path(orfs_fasta).exists() or not Path(proteins_fasta).exists():
+        logger.warning("ORF/protein FASTA missing; skipping prompt-based ORF filtering.")
+        return
+    if not Path(prompts_csv).exists():
+        logger.warning("Prompts CSV missing; skipping prompt-based ORF filtering.")
+        return
+
+    prompts_df = pd.read_csv(prompts_csv)
+    if "UUID" not in prompts_df.columns or "Prompt" not in prompts_df.columns:
+        logger.warning("Prompts CSV missing UUID/Prompt columns; skipping filter.")
+        return
+
+    prompt_map = {
+        str(row["UUID"]).split("_")[0]: str(row["Prompt"]).upper()
+        for _, row in prompts_df.iterrows()
+    }
+
+    allowed_ids: Set[str] = set()
+    filtered_orfs: List[SeqRecord] = []
+
+    for record in SeqIO.parse(str(orfs_fasta), "fasta"):
+        base_id = record.id.split(" ")[0]
+        uuid = base_id.split("_")[0]
+        prompt_dna = prompt_map.get(uuid)
+        if not prompt_dna:
+            continue
+        seq = str(record.seq).upper()
+        if prompt_dna not in seq:
+            continue
+        if base_id in allowed_ids:
+            continue
+        allowed_ids.add(base_id)
+        filtered_orfs.append(record)
+
+    if not filtered_orfs:
+        logger.warning("No ORFs contained their prompts; downstream outputs will be empty.")
+
+    SeqIO.write(filtered_orfs, str(orfs_fasta), "fasta")
+
+    filtered_proteins = [
+        record
+        for record in SeqIO.parse(str(proteins_fasta), "fasta")
+        if record.id.split(" ")[0] in allowed_ids
+    ]
+    SeqIO.write(filtered_proteins, str(proteins_fasta), "fasta")
+    logger.info("Retained %d ORFs/proteins whose nucleotide sequence contains the prompt.", len(filtered_orfs))
+
+
+def build_reference_lookup(reference_fasta: Path) -> Dict[str, str]:
+    """Create a case-insensitive mapping from reference labels to sequences.
+
+    Args:
+        reference_fasta: FASTA file containing reference protein sequences.
+
+    Returns:
+        Dictionary keyed by various identifiers (accession, description tokens) to amino-acid sequences.
+    """
+    lookup: Dict[str, str] = {}
+    for record in SeqIO.parse(reference_fasta, "fasta"):
+        seq = str(record.seq)
+        description = record.description.lower()
+        candidates = {
+            record.id.lower(),
+            description,
+        }
+        candidates.update(token.strip("[](),") for token in description.replace("/", " ").split())
+        for key in candidates:
+            if key and key not in lookup:
+                lookup[key] = seq
+    return lookup
 
 
 def calculate_sequence_identity(seq1: str, seq2: str, mafft_path: str = "mafft") -> Optional[float]:
@@ -263,7 +356,7 @@ def align_and_save_closest_match(
         identity_threshold: Minimum percent identity threshold for keeping matches (0-100)
         mafft_path: Path to MAFFT executable (default: "mafft")
 
-    Generated Files:
+)    Generated Files:
         output_csv: CSV file with columns:
             - query_id: ID of query sequence
             - reference_id: ID of best matching reference sequence
@@ -271,6 +364,9 @@ def align_and_save_closest_match(
 
         filtered_fasta: FASTA file containing query sequences that had matches
             above the identity threshold
+
+    Returns:
+        None. Artifacts are written to `output_csv` and `filtered_fasta`.
     """
     reference_seqs = {record.id: record for record in SeqIO.parse(reference_fasta, "fasta")}
 
@@ -345,24 +441,59 @@ def calculate_sequence_identity_w_prompt(seq1: str, seq2: str, mafft_path: str =
 def calculate_non_prompt_sequence_identity(
     input_aa: str, reference_aa: str, prompt_dna: str, mafft_path: str = "mafft"
 ) -> float:
-    """
-    Calculate sequence identity for the non-prompt portion using MAFFT alignment.
-    """
-    prompt_dna_trimmed = prompt_dna[: -(len(prompt_dna) % 3)] if len(prompt_dna) % 3 != 0 else prompt_dna
-    prompt_aa = str(Seq(prompt_dna_trimmed).translate())
+    """Calculate sequence identity for the non-prompt portion using aligned sequences.
 
-    if prompt_aa not in input_aa or prompt_aa not in reference_aa:
+    Args:
+        input_aa: Generated full-length amino-acid sequence.
+        reference_aa: Reference amino-acid sequence.
+        prompt_dna: DNA string representing the prompt region.
+        mafft_path: Path to MAFFT (default: "mafft").
+
+    Returns:
+        Percent identity (0-100) for the aligned region after the prompt.
+    """
+    if not input_aa or not reference_aa or not prompt_dna:
         return 0.0
 
-    input_start = input_aa.index(prompt_aa) + len(prompt_aa)
-    ref_start = reference_aa.index(prompt_aa) + len(prompt_aa)
+    prompt_dna_trimmed = prompt_dna[: -(len(prompt_dna) % 3)] if len(prompt_dna) % 3 != 0 else prompt_dna
+    prompt_aa = str(Seq(prompt_dna_trimmed).translate())
+    prompt_len = len(prompt_aa)
+    if prompt_len == 0:
+        return 0.0
 
-    input_non_prompt = input_aa[input_start:]
-    ref_non_prompt = reference_aa[ref_start:]
+    try:
+        aligned_seq1, aligned_seq2, _ = align_pair(
+            SeqRecord(Seq(input_aa), id="input"),
+            SeqRecord(Seq(reference_aa), id="reference"),
+            mafft_path,
+        )
+    except subprocess.CalledProcessError:
+        return 0.0
 
-    identity = calculate_sequence_identity(input_non_prompt, ref_non_prompt, mafft_path)
+    consumed_input = 0
+    consumed_ref = 0
+    matches = 0
+    positions = 0
 
-    return identity
+    for aa1, aa2 in zip(aligned_seq1, aligned_seq2):
+        if aa1 != "-":
+            consumed_input += 1
+        if aa2 != "-":
+            consumed_ref += 1
+
+        if consumed_input <= prompt_len or consumed_ref <= prompt_len:
+            continue
+
+        if aa1 == "-" or aa2 == "-":
+            continue
+
+        positions += 1
+        if aa1 == aa2:
+            matches += 1
+
+    if positions == 0:
+        return 0.0
+    return (matches / positions) * 100.0
 
 
 def create_summary_statistics(results_df: pd.DataFrame, output_path: Path) -> None:
@@ -374,6 +505,9 @@ def create_summary_statistics(results_df: pd.DataFrame, output_path: Path) -> No
 
     Generated Files:
         output_path: CSV file containing grouped summary statistics
+
+    Returns:
+        None.
     """
     if results_df.empty:
         logger.error("No results to process. Exiting.")
@@ -417,42 +551,25 @@ def process_gene_completion_sequences(
     output_summary_csv: Path,
     mafft_path: Path,
 ) -> None:
-    """
+    """Analyze generated sequences against references and write per-gene metrics.
+
     Args:
-        input_fasta: FASTA file containing generated gene sequences with UUID headers
-        uuid_prompts_csv: CSV mapping UUIDs to prompts with columns:
-            - UUID: Unique identifier for each generated sequence
-            - Prompt: The prompt used to generate sequence (truncated gene)
-        prompt_info_csv: CSV with prompt metadata containing:
-            - Shortened_Sequence: The truncated gene sequence used as prompt
-            - Protein_Label: Label identifying the protein type
-            - Length_Percentage: What percentage of gene was provided
-        reference_fasta: FASTA file containing full reference gene sequences
-        output_csv: Path to save detailed analysis results
-        output_summary_csv: Path to save summary statistics
+        input_fasta: FASTA file containing generated gene sequences with UUID headers.
+        uuid_prompts_csv: CSV mapping sequence UUIDs to the prompts used for generation.
+        prompt_info_csv: CSV with prompt metadata (prompt string, protein label, length%).
+        reference_fasta: FASTA file containing full-length reference gene sequences.
+        output_csv: Path to write the per-sequence MSA/identity statistics.
+        output_summary_csv: Path to write grouped summary statistics.
+        mafft_path: Location of the MAFFT executable.
 
-    Generated Files:
-        output_csv: CSV file containing sequence analysis with columns:
-            - UUID: Unique sequence identifier
-            - Input_Sequence: Generated sequence
-            - Prompt: Truncated sequence used as prompt
-            - Protein_Label: Type/label of the protein
-            - Length_Percentage: Percent of gene provided in prompt
-            - Reference_Sequence: Full reference sequence
-            - Full_Sequence_Identity: Percent identity to reference
-            - Non_Prompt_Sequence_Identity: Identity of generated portion
-            - Prompt_Length: Length of translated prompt sequence
-
-        output_summary_csv: Summary statistics grouped by Protein_Label and
-            Length_Percentage, including means and standard deviations
+    Returns:
+        None. Results are written to `output_csv` and `output_summary_csv`.
     """
     input_sequences: Dict[str, str] = {
         record.id.split(" ")[0].split("_")[0]: str(record.seq).replace("*", "")
         for record in SeqIO.parse(input_fasta, "fasta")
     }
-    reference_sequences: Dict[str, str] = {
-        record.id: str(record.seq) for record in SeqIO.parse(reference_fasta, "fasta")
-    }
+    reference_lookup = build_reference_lookup(reference_fasta)
     uuid_prompts_df = pd.read_csv(uuid_prompts_csv)
     prompt_info_df = pd.read_csv(prompt_info_csv)
 
@@ -464,10 +581,17 @@ def process_gene_completion_sequences(
                 continue
 
             prompt = prompt_row["Prompt"].iloc[0]
+            prompt_aa = translate_dna_sequence(prompt)
 
             info_row = prompt_info_df[prompt_info_df["Shortened_Sequence"] == prompt]
 
             if info_row.empty:
+                continue
+
+            if not input_seq.startswith(prompt_aa):
+                logger.debug(
+                    "Skipping UUID %s because translated prompt does not match sequence start.", uuid_val
+                )
                 continue
 
             result = SequenceResult(
@@ -476,18 +600,31 @@ def process_gene_completion_sequences(
                 Prompt=prompt,
                 Protein_Label=info_row["Protein_Label"].iloc[0],
                 Length_Percentage=info_row["Length_Percentage"].iloc[0],
-                Reference_Sequence=reference_sequences.get(info_row["Protein_Label"].iloc[0], ""),
-                Full_Sequence_Identity=calculate_sequence_identity(
-                    input_seq, reference_sequences.get(info_row["Protein_Label"].iloc[0], ""), mafft_path
-                ),
-                Non_Prompt_Sequence_Identity=calculate_non_prompt_sequence_identity(
-                    input_seq,
-                    reference_sequences.get(info_row["Protein_Label"].iloc[0], ""),
-                    prompt,
-                    mafft_path,
-                ),
-                Prompt_Length=len(translate_dna_sequence(prompt)),
+                Reference_Sequence="",
+                Full_Sequence_Identity=0.0,
+                Non_Prompt_Sequence_Identity=0.0,
+                Prompt_Length=len(prompt_aa),
             )
+
+            ref_label = str(info_row["Protein_Label"].iloc[0]).lower()
+            reference_seq = reference_lookup.get(ref_label)
+            if not reference_seq:
+                logger.warning("No reference sequence found for label '%s'; skipping.", ref_label)
+                continue
+
+            result.Reference_Sequence = reference_seq
+
+            full_identity = calculate_sequence_identity(input_seq, reference_seq, mafft_path) or 0.0
+            non_prompt_identity = calculate_non_prompt_sequence_identity(
+                input_seq,
+                reference_seq,
+                prompt,
+                mafft_path,
+            )
+            non_prompt_identity = non_prompt_identity if non_prompt_identity is not None else 0.0
+
+            result.Full_Sequence_Identity = full_identity
+            result.Non_Prompt_Sequence_Identity = non_prompt_identity
             results.append(result)
 
         except Exception as e:
@@ -513,6 +650,9 @@ def run_pipeline(config_path: Path) -> None:
         - MSA results
         - Analysis CSV
         - Summary statistics
+
+    Returns:
+        None.
     """
     config = load_config(config_path)
 
@@ -539,6 +679,9 @@ def run_pipeline(config_path: Path) -> None:
 
     # Process sequences
     run_prodigal(config.all_seqs_fasta, config.proteins_file, config.orfs_file)
+    filter_orfs_by_prompt(
+        config.proteins_file, config.orfs_file, config.evo_gen_seqs_file_save_location
+    )
     filter_protein_fasta(
         config.proteins_file,
         config.filtered_proteins_file,

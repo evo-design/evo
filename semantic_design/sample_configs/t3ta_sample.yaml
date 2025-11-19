@@ -1,0 +1,62 @@
+# ##################################################################
+# ### TYPE III TOXIN–ANTITOXIN SAMPLING AND ANALYSIS CONFIG      ###
+# ##################################################################
+#
+# Pipeline stages:
+#   1. Sample genomic contexts using Evo and save all sequences/FASTA files.
+#   2. Predict ORFs with Prodigal and filter protein sequences (segmasker, length, partial ORFs).
+#   3. Fold proteins with ESMFold and select high-confidence structures.
+#   4. Run Tandem Repeat Finder (TRF) on DNA sequences associated with filtered proteins.
+#   5. Fold TRF-derived regions into RNA, identify hairpins, and pair with proteins.
+#   6. Compare RNA structures to reference datasets for qualitative assessment.
+#
+# Provide paths for prompts, the TRF binary, and any reference RNA structure CSVs.
+
+###########################################
+### 1. CORE INPUTS AND FILE LOCATIONS  ###
+###########################################
+
+input_prompts: ./sample_prompts/t3ta_sample_prompts.csv
+output_dir: ./outputs/t3ta
+segmasker_path: /home/adititm/ncbi-blast-2.16.0+/bin/segmasker
+# segmasker_path: /usr/local/bin/ncbi-blast-2.16.0+/bin/segmasker
+# trf_path: /home/username/trf_executable/trf
+trf_path: /home/adititm/trf_executable/trf
+rna_structures_reference_csv: ./sample_reference_sequences/t3ta_reference_at_structures.csv
+
+##################################
+### 2. GENERATION PARAMETERS   ###
+##################################
+
+model_name: evo-1.5-8k-base
+n_tokens: 1000
+temperature: 0.8
+top_k: 4
+batched: true
+batch_size: 8
+n_sample_per_prompt: 50
+
+#################################################
+### 3. FILTERING + FOLDING CONFIGURATION     ###
+#################################################
+
+rc_truth: false
+return_both: false
+filter_min_length: 50
+filter_max_length: 400
+filter_partial_bool: false
+segmasker_threshold: 0.2
+run_esm_fold: true
+plddt_threshold: 0.3
+ptm_threshold: 0.0
+
+# Pfam/HMMER configuration for toxin domain filtering
+hmmscan_pfam_db_path: /sample_reference_sequences/t3ta_hmm/t3ta_associated_domains.hmm
+pfam_evalue_threshold: .0.05
+
+# cmscan Infernal configuration for antitoxin RNA family filtering
+cmscan_model_paths:
+  - ./sample_reference_sequences/t3ta_cm/RF02519.cm
+
+# Write TRF output table to CSV (set false to skip writing)
+write_trf_to_csv: true

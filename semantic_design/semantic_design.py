@@ -5,7 +5,8 @@ import uuid
 import math
 import subprocess
 from pathlib import Path
-from typing import Dict, Any, Union, TypeVar, List, Tuple
+from typing import Dict, Any, Union, List, Tuple, Optional
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -121,6 +122,7 @@ def run_model(
     batched: bool = True,
     device: str = "cuda:0",
     force_prompt_threshold: int = 2,
+    cached_generation: bool = True,
 ) -> Tuple[Union[List[str], str], Union[List[float], float]]:
     """
     Generate DNA sequences using Evo.
@@ -149,6 +151,8 @@ def run_model(
 
         force_prompt_threshold: Minimum number of tokens that must match the prompt
 
+        cached_generation: Whether to reuse StripedHyena's cached inference state.
+
     Returns:
         A tuple containing:
         - Generated sequences (str if single sequence, List[str] if batched)
@@ -164,7 +168,7 @@ def run_model(
         batched=batched,
         device=device,
         force_prompt_threshold=force_prompt_threshold,
-        cached_generation=True,
+        cached_generation=cached_generation,
         verbose=True,
     )
 
@@ -316,32 +320,37 @@ def sample_model(
     extended_header = ["UUID", "Prompt", "Generated Sequence", "Score"]
 
     if batched:
-        for _ in range(n_sample_per_prompt):
-            for batch in prompt_batches:
-                print("Created batches")
-                valid_batch = [seq for seq in batch if isinstance(seq, str) and seq.strip()]
-                if not valid_batch:
-                    continue
-                genseqs, genscores = run_model(
-                    valid_batch,
-                    model,
-                    tokenizer,
-                    n_tokens,
-                    temp,
-                    top_k,
-                    batched,
-                    device,
-                    force_prompt_threshold,
-                )
-                print("Ran model")
+        for batch in prompt_batches:
+            print("Created batches")
+            valid_batch = [seq for seq in batch if isinstance(seq, str) and seq.strip()]
+            if not valid_batch:
+                continue
 
-                current_batch = [
-                    [uuid.uuid4().hex, prompt, seq, str(score)]
-                    for prompt, seq, score in zip(valid_batch, genseqs, genscores)
-                    if isinstance(seq, str) and seq.strip() and not math.isnan(float(score))
-                ]
-                print(current_batch)
-                coupledpromptseqscores.extend(current_batch)
+            repeated_prompts: List[str] = []
+            for prompt in valid_batch:
+                repeated_prompts.extend([prompt] * n_sample_per_prompt)
+
+            genseqs, genscores = run_model(
+                repeated_prompts,
+                model,
+                tokenizer,
+                n_tokens,
+                temp,
+                top_k,
+                batched,
+                device,
+                force_prompt_threshold,
+                cached_generation=True,
+            )
+            print("Ran model")
+
+            current_batch = [
+                [uuid.uuid4().hex, prompt, seq, str(score)]
+                for prompt, seq, score in zip(repeated_prompts, genseqs, genscores)
+                if isinstance(seq, str) and seq.strip() and not math.isnan(float(score))
+            ]
+            print(current_batch)
+            coupledpromptseqscores.extend(current_batch)
     else:
         if isinstance(prompt_batches, str):
             prompts_list = [prompt_batches]
@@ -351,27 +360,31 @@ def sample_model(
         for prompt in prompts_list:
             if not isinstance(prompt, str) or not prompt.strip():
                 continue
-            for _ in range(n_sample_per_prompt):
-                genseqs, genscores = run_model(
-                    prompt,
-                    model,
-                    tokenizer,
-                    n_tokens,
-                    temp,
-                    top_k,
-                    batched,
-                    device,
-                    force_prompt_threshold,
-                )
 
-                seq_list = genseqs if isinstance(genseqs, list) else [genseqs]
-                score_list = genscores if isinstance(genscores, list) else [genscores]
-                current_batch = [
-                    [uuid.uuid4().hex, prompt, seq, str(score)]
-                    for seq, score in zip(seq_list, score_list)
-                    if isinstance(seq, str) and seq.strip()
-                ]
-                coupledpromptseqscores.extend(current_batch)
+            repeated_prompts = [prompt] * n_sample_per_prompt
+            prompts_for_model: PromptType = repeated_prompts if len(repeated_prompts) > 1 else repeated_prompts[0]
+
+            genseqs, genscores = run_model(
+                prompts_for_model,
+                model,
+                tokenizer,
+                n_tokens,
+                temp,
+                top_k,
+                batched,
+                device,
+                force_prompt_threshold,
+                cached_generation=True,
+            )
+
+            seq_list = genseqs if isinstance(genseqs, list) else [genseqs]
+            score_list = genscores if isinstance(genscores, list) else [genscores]
+            current_batch = [
+                [uuid.uuid4().hex, prompt, seq, str(score)]
+                for seq, score in zip(seq_list, score_list)
+                if isinstance(seq, str) and seq.strip()
+            ]
+            coupledpromptseqscores.extend(current_batch)
 
     filtered_data = []
     for row in coupledpromptseqscores:
@@ -404,7 +417,7 @@ def run_prodigal(
     input_file: str,
     output_file: str,
     output_orf_file: str,
-    prodigal_path: str = "/old_home/cirrascale/miniconda3/envs/evo-design/bin/prodigal",
+    prodigal_path: Optional[str] = None,
 ) -> None:
     """
     Run Prodigal for gene prediction on metagenomic sequences.
@@ -413,18 +426,23 @@ def run_prodigal(
         input_file: Path to input FASTA file containing genomic sequences
         output_file: Path to save predicted protein sequences (amino acids)
         output_orf_file: Path to save predicted coding sequences (nucleotides)
-        prodigal_path: Path to Prodigal executable
+        prodigal_path: Optional path to the Prodigal executable. Falls back to PATH.
 
     Files Generated:
        Creates two FASTA files at output_file (protein sequences) and output_orf_file
        containing the prodigal predicted ORFs and protein sequences called from the
        input sequnces.
     """
-    if not Path(prodigal_path).exists():
-        raise FileNotFoundError(f"Prodigal not found at: {prodigal_path}")
+    exe = prodigal_path or shutil.which("prodigal")
+    if not exe:
+        raise FileNotFoundError(
+            "Prodigal executable not found. Provide `prodigal_path` or ensure it is available on PATH."
+        )
+    if not Path(exe).exists():
+        raise FileNotFoundError(f"Prodigal not found at: {exe}")
 
     cmd = [
-        prodigal_path,
+        exe,
         "-i",
         input_file,
         "-a",
@@ -434,7 +452,6 @@ def run_prodigal(
         "-p",
         "meta",  # Metagenomics mode
     ]
-
     subprocess.run(cmd, check=True)
 
 

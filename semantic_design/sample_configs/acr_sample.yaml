@@ -45,7 +45,7 @@ model_name: evo-1.5-8k-base
 n_tokens: 1000
 
 # Sampling temperature (higher = more diverse)
-temperature: 0.7
+temperature: 0.8
 
 # Top-k sampling limit (higher = more exploratory)
 top_k: 4
@@ -57,7 +57,7 @@ batched: true
 batch_size: 10
 
 # Number of independent samples per prompt
-n_sample_per_prompt: 10
+n_sample_per_prompt: 5
 
 
 ##########################################
@@ -65,17 +65,17 @@ n_sample_per_prompt: 10
 ##########################################
 
 # Include reverse complements downstream (set true to generate double-strand variants)
-rc_truth: false
+rc_truth: true
 
 # Keep both forward strand + RC (requires `rc_truth: true`)
-return_both: false
+return_both: true
 
 # Allowed protein length range after ORF calling
 filter_min_length: 50
-filter_max_length: 800
+filter_max_length: 200
 
 # Drop partial ORFs (set true if Prodigal not run in meta mode)
-filter_partial_bool: false
+filter_partial_bool: true
 
 # Fraction of low-complexity positions tolerated before filtering
 segmasker_threshold: 0.1

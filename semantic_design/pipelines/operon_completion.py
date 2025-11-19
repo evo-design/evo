@@ -105,6 +105,7 @@ class Config:
     output_summary_csv: Path = field(init=False)
 
     def __post_init__(self) -> None:
+        """Normalize user-provided paths and compute every downstream artifact location."""
         self.input_prompts = Path(self.input_prompts)
         self.reference_seqs = Path(self.reference_seqs)
         self.output_dir = Path(self.output_dir)
@@ -124,7 +125,14 @@ class Config:
 
 
 def load_config(config_path: Path) -> Config:
-    """Load a YAML configuration file."""
+    """Load a YAML configuration file and instantiate `Config`.
+
+    Args:
+        config_path: Path to the YAML config.
+
+    Returns:
+        Config instance with derived output paths created.
+    """
     config_path = Path(config_path)
     try:
         with open(config_path, "r") as handle:
@@ -315,8 +323,9 @@ def process_operon_sequences(
     output_summary_csv: Path,
     mafft_path: Path,
 ) -> None:
-    """
-     Args:
+    """Analyze operon completions versus references and export detailed metrics.
+
+    Args:
         input_fasta: FASTA file containing generated sequences with UUID headers
         uuid_prompts_csv: CSV mapping UUIDs to prompts with columns:
             - UUID: Unique identifier for each sequence
@@ -341,15 +350,17 @@ def process_operon_sequences(
             - Mean sequence identity
             - Standard deviation
             - Number of samples per prompt
+
+    Returns:
+        None. Writes the requested CSV summaries.
     """
     logger.info("Starting sequence analysis...")
 
-    input_sequences: Dict[str, str] = {}
+    input_sequences: Dict[str, List[str]] = {}
     for record in SeqIO.parse(input_fasta, "fasta"):
         uuid = record.id.split("_")[0]
         sequence = str(record.seq).replace("*", "")
-        input_sequences[uuid] = sequence
-        logger.info(f"Loaded sequence for UUID: {uuid}")
+        input_sequences.setdefault(uuid, []).append(sequence)
 
     uuid_prompt_map = pd.read_csv(uuid_prompts_csv)
 
@@ -362,7 +373,7 @@ def process_operon_sequences(
 
     results: List[SequenceResult] = []
 
-    for uuid, generated_seq in input_sequences.items():
+    for uuid, sequences in input_sequences.items():
         try:
             prompt_match = uuid_prompt_map[uuid_prompt_map["UUID"] == uuid]
             if prompt_match.empty:
@@ -381,16 +392,24 @@ def process_operon_sequences(
                 logger.warning(f"No reference sequence found for expected response: {expected_response}")
                 continue
 
-            sequence_identity = calculate_sequence_identity(generated_seq, reference_seq, mafft_path)
-            logger.info(f"Calculated sequence identity for {uuid}: {sequence_identity}%")
+            best_identity = -1.0
+            best_sequence = None
+            for seq in sequences:
+                identity = calculate_sequence_identity(seq, reference_seq, mafft_path)
+                if identity is not None and identity > best_identity:
+                    best_identity = identity
+                    best_sequence = seq
+
+            if best_sequence is None or best_identity < 0:
+                continue
 
             result = SequenceResult(
                 UUID=uuid,
-                Generated_Sequence=generated_seq,
+                Generated_Sequence=best_sequence,
                 Prompt=prompt,
                 Expected_Response=expected_response,
                 Reference_Sequence=reference_seq,
-                Sequence_Identity=sequence_identity,
+                Sequence_Identity=best_identity,
             )
             results.append(result)
 
@@ -399,6 +418,12 @@ def process_operon_sequences(
             continue
 
     output_df = pd.DataFrame([vars(r) for r in results])
+    if not output_df.empty:
+        output_df = (
+            output_df.sort_values("Sequence_Identity", ascending=False)
+            .drop_duplicates(subset=["UUID", "Expected_Response"], keep="first")
+            .reset_index(drop=True)
+        )
     output_df.to_csv(output_msa_csv, index=False)
     logger.info(f"Results saved to {output_msa_csv}")
 
@@ -420,6 +445,8 @@ def run_pipeline(config_file: str) -> None:
         - Multiple sequence alignments of generated proteins and reference sequences
         - Summary statistics CSV
 
+    Returns:
+        None.
     """
     config = load_config(config_file)
 

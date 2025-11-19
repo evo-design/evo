@@ -78,6 +78,7 @@ class Config:
         return cls(**config_dict)
 
     def __post_init__(self) -> None:
+        """Resolve user paths and define all derived output file locations."""
         self.input_prompts = Path(self.input_prompts)
         self.output_dir = Path(self.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -93,7 +94,14 @@ class Config:
 
 
 def load_config(config_file: str) -> Config:
-    """Load configuration from YAML file."""
+    """Load configuration from a YAML file path.
+
+    Args:
+        config_file: Path to the user-provided YAML config.
+
+    Returns:
+        Config instance with derived output paths created.
+    """
     try:
         with open(config_file, "r") as f:
             config_dict = yaml.safe_load(f)
@@ -107,7 +115,16 @@ def load_config(config_file: str) -> Config:
 
 
 def process_sequences(config: Config, model: StripedHyena, tokenizer: CharLevelTokenizer) -> None:
-    """Process sequences through the pipeline."""
+    """Sample DNA sequences with Evo and run the baseline filtering cascade.
+
+    Args:
+        config: Loaded configuration for this run.
+        model: Language model used for sequence generation.
+        tokenizer: Tokenizer compatible with the provided model.
+
+    Returns:
+        None. Artifacts are written to the configured output directory.
+    """
     print("Starting sequence processing...")
 
     # Read prompts
@@ -151,7 +168,14 @@ def process_sequences(config: Config, model: StripedHyena, tokenizer: CharLevelT
 
 
 def process_folds(config: Config) -> pd.DataFrame:
-    """Process sequence alignments and protein folding."""
+    """Fold filtered proteins with ESMFold and return sequences passing thresholds.
+
+    Args:
+        config: Run configuration containing path and cutoff information.
+
+    Returns:
+        DataFrame of proteins that met the user-defined pLDDT/pTM thresholds.
+    """
     print("Starting protein folding...", flush=True)
     fold_stats = fold_proteins(config.filtered_proteins_file, config.output_folds_file)
     print("Protein folding complete", flush=True)
@@ -163,6 +187,14 @@ def process_folds(config: Config) -> pd.DataFrame:
 
 
 def main(config_file: str) -> None:
+    """Entry point for running the Acr sampling pipeline via a config file path.
+
+    Args:
+        config_file: Path to the YAML configuration.
+
+    Returns:
+        None.
+    """
     try:
         # Load configuration
         config = load_config(config_file)
