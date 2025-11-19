@@ -1,0 +1,96 @@
+# ##################################################################
+# ### TYPE III TOXIN–ANTITOXIN SAMPLING AND ANALYSIS CONFIG      ###
+# ##################################################################
+#
+# Pipeline stages:
+#   1. Sample genomic contexts using Evo and save all sequences/FASTA files.
+#   2. Predict ORFs with Prodigal and filter protein sequences (segmasker, length, partial ORFs).
+#   3. Fold proteins with ESMFold and select high-confidence structures.
+#   4. Run Tandem Repeat Finder (TRF) on DNA sequences associated with filtered proteins.
+#   5. Fold TRF-derived regions into RNA, identify hairpins, and pair with proteins.
+#   6. Compare RNA structures to reference datasets for qualitative assessment.
+#
+# Provide paths for prompts, the TRF binary, and any reference RNA structure CSVs.
+
+###########################################
+### 1. CORE INPUTS AND FILE LOCATIONS  ###
+###########################################
+
+# CSV containing prompts
+input_prompts: ./sample_prompts/t3ta_sample_prompts.csv
+
+# Directory where every downstream artifact will be written
+output_dir: ./outputs/t3ta
+
+# Location of segmasker executable (BLAST+ install)
+segmasker_path: /usr/local/bin/ncbi-blast-2.16.0+/bin/segmasker
+
+# Location of tandem repeat finder executable
+trf_path: /usr/local/bin/trf_executable/trf
+
+# RNA structures to compare again for structural filtering
+rna_structures_reference_csv: ./sample_reference_sequences/t3ta_reference_at_structures.csv
+
+# Location of RNA structure filtering script (remove to disable structure filtering)
+rna_structure_filter_script: ./bin/t3ta_structure_comparison.py
+
+##################################
+### 2. GENERATION PARAMETERS   ###
+##################################
+
+# Evo checkpoint name
+model_name: evo-1.5-8k-base
+
+# Number of DNA tokens to synthesize per prompt
+n_tokens: 1000
+
+# Sampling hyperparameters (temperature/top_k
+# higher temperature increases diversity)
+temperature: 0.8
+top_k: 4
+
+# Use batching to group prompts of equal length, increase to
+# speed up sampling
+batched: true
+batch_size: 10
+
+# Number of samples per prompt for evaluation
+n_sample_per_prompt: 5
+
+#################################################
+### 3. FILTERING + FOLDING CONFIGURATION     ###
+#################################################
+
+# Should reverse complements be considered downstream?
+rc_truth: true
+
+# Preserve both strands? (only meaningful if rc_truth true)
+return_both: true
+
+# Acceptable protein length range post-Prodigal (aa)
+filter_min_length: 50
+filter_max_length: 400
+
+# Filter partial ORFs flagged by Prodigal
+filter_partial_bool: false
+
+# Fraction of low-complexity positions tolerated before filtering
+segmasker_threshold: 0.2
+
+# Run ESMFold to score structures
+run_esm_fold: true
+
+# Minimum quality thresholds for keeping folded proteins
+plddt_threshold: 0.3
+ptm_threshold: 0.2
+
+# Pfam/HMMER configuration for toxin domain filtering
+hmmscan_pfam_db_path: ./sample_reference_sequences/t3ta_hmm/t3ta_associated_domains.hmm
+pfam_evalue_threshold: .0.05
+
+# cmscan Infernal configuration for antitoxin RNA family filtering
+cmscan_model_paths:
+  - ./sample_reference_sequences/t3ta_cm/RF02519.cm
+
+# Write TRF output table to CSV (set false to skip writing)
+write_trf_to_csv: true

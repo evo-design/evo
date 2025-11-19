@@ -37,6 +37,7 @@ dependencies:
   - stdlib-list=0.10.0=py311h06a4308_0
   - threadpoolctl=3.5.0=py311h92b7b1e_0
   - tk=8.6.13=noxft_h4845f30_101
+  - viennarna=2.6.4
   - wget=1.21.4=h251f7ec_1
   - wheel=0.42.0=pyhd8ed1ab_0
   - xz=5.2.6=h166bdaf_0
@@ -47,12 +48,13 @@ dependencies:
   - bioconda::blast
   - bioconda::mmseqs2
   - bioconda::foldseek
+  - bioconda::trf
+  - bioconda::infernal
   - pip:
       - biopython==1.83
       - bioservices==1.11.2
       - biotite==0.39.0
       - distributed==2024.11.2
-      - flash-attn==2.5.5
       - huggingface-hub==0.20.3
       - idna==3.6
       - igraph==0.11.6
@@ -100,6 +102,7 @@ dependencies:
       - python-json-logger==2.0.7
       - pyyaml==6.0.1
       - safetensors==0.4.2
+      - scikit-learn==1.7.2
       - stripedhyena==0.2.2
       - tokenizers==0.15.2
       - torch==2.2.1

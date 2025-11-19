@@ -1,0 +1,88 @@
+# ############################################################
+# ### ANTI-CRISPR (ACR) SAMPLING + FILTERING CONFIGURATION ###
+# ############################################################
+#
+# Pipeline overview:
+#   1. Sample DNA sequences from anti-CRISPR prompts with Evo.
+#   2. Convert DNA to proteins by running Prodigal on concatenated sequences.
+#   3. Apply length/complexity filters to prune low-quality predictions.
+#   4. Optionally fold surviving proteins with ESMFold and keep only high-quality
+#      structures.
+# All intermediate CSV/FASTA files land in `output_dir`, letting you audit each step.
+# Requirements: Evo model weights + GPU, Prodigal binary, segmasker, ESMFold (for folding).
+#
+# OUTPUT OVERVIEW
+# ---------------
+# qc1: generated sequences + prompts (`generated_sequences.csv`)
+# qc2: FASTA of nucleotide sequences (`all_sequences.fasta`)
+# qc3: prodigal ORFs/proteins (`proteins.fasta`, `orfs.fasta`)
+# qc4: filtered proteins after segmasker/length checks (`filtered_proteins.fasta`)
+# qc5: ESMFold stats (`folds.csv`) + filtered list (`filtered_folds.csv`)
+
+
+###########################################
+### 1. CORE INPUTS AND FILE LOCATIONS  ###
+###########################################
+
+# CSV containing prompts (column 0 = DNA prompt)
+input_prompts: ./sample_prompts/acr_sample_prompts.csv
+
+# Directory where every downstream artifact will be written
+output_dir: ./outputs/acr_sample
+
+# Location of segmasker executable (BLAST+ install)
+segmasker_path: /usr/bin/ncbi-blast-2.16.0+/bin/segmasker
+
+
+##################################
+### 2. GENERATION PARAMETERS   ###
+##################################
+
+# Evo model checkpoint name; must be available locally or via huggingface hub
+model_name: evo-1.5-8k-base
+
+# Number of new tokens per generation (includes both DNA + prompt continuation)
+n_tokens: 1000
+
+# Sampling temperature (higher = more diverse)
+temperature: 0.8
+
+# Top-k sampling limit (higher = more exploratory)
+top_k: 4
+
+# Whether to batch prompts by length for faster sampling
+batched: true
+
+# Batch size when `batched` is true; keep moderate to fit GPU memory
+batch_size: 10
+
+# Number of independent samples per prompt
+n_sample_per_prompt: 5
+
+
+##########################################
+### 3. FILTERING + FOLDING PARAMETERS  ###
+##########################################
+
+# Include reverse complements downstream (set true to generate double-strand variants)
+rc_truth: true
+
+# Keep both forward strand + RC (requires `rc_truth: true`)
+return_both: true
+
+# Allowed protein length range after ORF calling
+filter_min_length: 50
+filter_max_length: 200
+
+# Drop partial ORFs
+filter_partial_bool: true
+
+# Fraction of low-complexity positions tolerated before filtering
+segmasker_threshold: 0.1
+
+# Fold filtered proteins with ESMFold
+run_esm_fold: true
+
+# ESMFold quality thresholds (discard if either metric < value)
+plddt_threshold: 0.3
+ptm_threshold: 0.2

@@ -1,0 +1,93 @@
+# ##########################################################
+# ### GENE COMPLETION EVALUATION CONFIGURATION TEMPLATE  ###
+# ##########################################################
+#
+# Pipeline steps:
+#   1. Generate completions for truncated gene prompts with Evo.
+#   2. Stitch prompts + generations, run Prodigal, and translate to proteins.
+#   3. Filter proteins with segmasker + heuristic thresholds (length, partial ORFs).
+#   4. Optionally align generated proteins to reference sequences via MAFFT
+#      and compute summary statistics.
+# Reference FASTA headers should match `Protein_Label` entries in the prompt CSV
+# so sequence identities can be computed. Requirements: Evo + GPU, Prodigal,
+# segmasker, MAFFT.
+#
+# OUTPUT SNAPSHOT
+# ---------------
+# qc1: UUID/prompt CSV (`generated_sequences.csv`)
+# qc2: FASTA of DNA sequences with prompt concatenated (`all_sequences.fasta`)
+# qc3: Prodigal outputs (`proteins.fasta`, `orfs.fasta`)
+# qc4: Filtered proteins (`filtered_proteins.fasta`)
+# qc5: Optional reference-aligned FASTA/CSV (`msa_filtered_proteins.fasta`, `sequence_alignment.csv`)
+# qc6: Summary analytics (`msa_results.csv`, `summary_statistics.csv`)
+
+
+###########################################
+### 1. CORE INPUTS AND FILE LOCATIONS  ###
+###########################################
+
+# CSV of truncated gene prompts (first column = DNA sequence, additional columns hold metadata)
+input_prompts: ./sample_prompts/gene_completion_prompts.csv
+
+# FASTA of full-length reference proteins; headers must map to Protein_Label entries
+reference_seqs: ./sample_reference_sequences/rpos_sequences.fasta
+
+# Directory where every CSV/FASTA/plot is saved
+output_dir: ./outputs/gene_completion
+
+# Segmasker executable (BLAST+ install)
+segmasker_path: /usr/local/bin/ncbi-blast-2.16.0+/bin/segmasker
+
+# MAFFT executable (needed when `run_msa` is true)
+mafft_path: /usr/local/bin/mafft/bin/mafft
+
+
+##################################
+### 2. GENERATION PARAMETERS   ###
+##################################
+
+# Evo checkpoint name
+model_name: evo-1.5-8k-base
+
+# Number of DNA tokens to synthesize per prompt
+n_tokens: 1000
+
+# Sampling hyperparameters (temperature/top_k
+# higher temperature increases diversity)
+temperature: 0.7
+top_k: 4
+
+# Use batching to group prompts of equal length, increase to
+# speed up sampling
+batched: true
+batch_size: 2
+
+# Number of samples per prompt
+n_sample_per_prompt: 3
+
+
+#################################################
+### 3. FILTERING + ALIGNMENT CONFIGURATION   ###
+#################################################
+
+# Should reverse complements be considered downstream?
+rc_truth: false
+
+# Preserve both strands? (only meaningful if rc_truth true)
+return_both: false
+
+# Acceptable protein length range post-Prodigal (aa)
+filter_min_length: 50
+filter_max_length: 1200
+
+# Filter partial ORFs flagged by Prodigal
+filter_partial_bool: false
+
+# Maximum allowed fraction of low-complexity residues from segmasker
+segmasker_threshold: 0.1
+
+# Run MAFFT-based scoring + summary reporting
+run_msa: true
+
+# Percent identity threshold for keeping alignments during reference filtering
+seq_identity_match_threshold: 30.0
