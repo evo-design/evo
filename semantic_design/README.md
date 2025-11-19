@@ -99,13 +99,12 @@ Shared building blocks (prompt reading, Evo sampling, Prodigal/segmasker wrapper
 Please cite the semantic design paper when using these workflows:
 
 ```
-@article {merchant2024semantic,
-   author = {Merchant, Aditi T and King, Samuel H and Nguyen, Eric and Hie, Brian L},
-   title = {Semantic mining of functional de novo genes from a genomic language model},
-   year = {2024},
-   doi = {10.1101/2024.12.17.628962},
-   publisher = {Cold Spring Harbor Laboratory},
-   URL = {https://www.biorxiv.org/content/early/2024/12/18/2024.12.17.628962},
-   journal = {bioRxiv}
+@article{merchant2025semantic,
+    author = {Merchant, Aditi T and King, Samuel H and Nguyen, Eric and Hie, Brian L},
+    title = {Semantic design of functional de novo genes from a genomic language model},
+    year = {2025},
+    doi = {10.1038/s41586-025-09749-7},
+    URL = {https://www.nature.com/articles/s41586-025-09749-7},
+    journal = {Nature}
 }
 ```
