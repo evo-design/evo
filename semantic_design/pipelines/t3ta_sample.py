@@ -1,12 +1,7 @@
 """
 Type III toxin-antitoxin sampling pipeline using Evo.
 
-Usage:
-    python pipelines/t3ta_sample.py --config path/to/config.yaml
-
-This pipeline mirrors the sampling/filtering flow of the other semantic design
-pipelines and adds Type III-specific analyses (tandem repeat finder, RNA folding,
-and hairpin-based pairing heuristics).
+Usage: python pipelines/t3ta_sample.py --config path/to/config.yaml
 """
 
 import argparse
@@ -406,7 +401,7 @@ def get_at_pairs(rna_fold_df: pd.DataFrame, filtered_folds: pd.DataFrame, output
 
 
 def visualize_rna_structures(reference_csv: Path, rna_fold_df: pd.DataFrame) -> Tuple[List[np.ndarray], List[str]]:
-    """Compute flattened ViennaRNA probability features for plotting/analysis.
+    """Compute flattened ViennaRNA probability features for analysis.
 
     Args:
         reference_csv: CSV containing known RNAs for comparison.
@@ -618,7 +613,7 @@ def prepare_rna_candidate_table(trf_df: pd.DataFrame, fold_trf_df: pd.DataFrame,
 
 
 def run_rna_structure_filter(candidates_csv: Path, config: Config) -> Set[str]:
-    """Invoke the external structure-similarity script and gather passing roots.
+    """Invoke structure-similarity script and gather passing roots.
 
     Args:
         candidates_csv: Path to the generated `rna_candidates.csv`.
@@ -672,7 +667,7 @@ def run_rna_structure_filter(candidates_csv: Path, config: Config) -> Set[str]:
 
 
 def run_rna_sequence_filter(candidates_csv: Path, config: Config) -> Set[str]:
-    """Invoke the external sequence-based alignment script and return passes.
+    """Invoke the sequence-based alignment script and return passes.
 
     Args:
         candidates_csv: Path to `rna_candidates.csv`.
@@ -718,13 +713,8 @@ def run_rna_sequence_filter(candidates_csv: Path, config: Config) -> Set[str]:
     return set(filtered["comp_root_id"].astype(str))
 
 
-# Removed custom Pfam whitelist handling; hmmscan results now include every
-# domain present in the (possibly trimmed) database, so additional filtering
-# is unnecessary unless users port the allowlist logic back in.
-
-
 def parse_domtblout(domtbl_path: Path) -> pd.DataFrame:
-    """Parse an hmmscan --domtblout file into a tidy DataFrame."""
+    """Parse an hmmscan --domtblout file into a DataFrame."""
     if not domtbl_path.exists():
         return pd.DataFrame()
     hits: List[Dict[str, Any]] = []

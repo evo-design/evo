@@ -29,7 +29,7 @@
 ### 1. CORE INPUTS AND FILE LOCATIONS  ###
 ###########################################
 
-# CSV containing toxin–antitoxin prompts with metadata columns expected by the script
+# CSV containing toxin–antitoxin prompts
 input_prompts: ./sample_prompts/t2ta_sample_prompts.csv
 
 # Directory that will receive all CSV/FASTA outputs listed above
@@ -43,12 +43,23 @@ segmasker_path: /usr/local/bin/ncbi-blast-2.16.0+/bin/segmasker
 ### 2. GENERATION PARAMETERS   ###
 ##################################
 
+# Evo checkpoint name
 model_name: evo-1.5-8k-base
+
+# Number of DNA tokens to synthesize per prompt
 n_tokens: 2000
+
+# Sampling hyperparameters (temperature/top_k
+# higher temperature increases diversity)
 temperature: 0.8
 top_k: 4
+
+# Use batching to group prompts of equal length, increase to
+# speed up sampling
 batched: true
 batch_size: 10
+
+# Number of samples per prompt for evaluation
 n_sample_per_prompt: 10
 
 
@@ -56,11 +67,20 @@ n_sample_per_prompt: 10
 ### 3. FILTERING, FOLDING, AND CO-FOLDING ###
 ##############################################
 
+# Should reverse complements be considered downstream?
 rc_truth: true
+
+# Preserve both strands? (only meaningful if rc_truth true)
 return_both: true
+
+# Acceptable protein length range post-Prodigal (aa)
 filter_min_length: 50
 filter_max_length: 300
+
+# Filter partial ORFs flagged by Prodigal
 filter_partial_bool: true
+
+# Fraction of low-complexity positions tolerated before filtering
 segmasker_threshold: 0.1
 
 # Run ESMFold to score structures

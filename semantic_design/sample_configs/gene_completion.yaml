@@ -52,11 +52,13 @@ model_name: evo-1.5-8k-base
 # Number of DNA tokens to synthesize per prompt
 n_tokens: 1000
 
-# Sampling hyperparameters (temperature/top_k)
+# Sampling hyperparameters (temperature/top_k
+# higher temperature increases diversity)
 temperature: 0.7
 top_k: 4
 
-# Whether to batch prompts by length for GPU efficiency
+# Use batching to group prompts of equal length, increase to
+# speed up sampling
 batched: true
 batch_size: 2
 
@@ -78,7 +80,7 @@ return_both: false
 filter_min_length: 50
 filter_max_length: 1200
 
-# Filter partial ORFs flagged by Prodigal (disable when running meta mode)
+# Filter partial ORFs flagged by Prodigal
 filter_partial_bool: false
 
 # Maximum allowed fraction of low-complexity residues from segmasker

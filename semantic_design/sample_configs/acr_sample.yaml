@@ -74,7 +74,7 @@ return_both: true
 filter_min_length: 50
 filter_max_length: 200
 
-# Drop partial ORFs (set true if Prodigal not run in meta mode)
+# Drop partial ORFs
 filter_partial_bool: true
 
 # Fraction of low-complexity positions tolerated before filtering

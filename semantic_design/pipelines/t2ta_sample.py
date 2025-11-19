@@ -1,5 +1,5 @@
 """
-Toxin-antitoxin sampling pipeline using Evo.
+Type II toxin-antitoxin sampling pipeline using Evo.
 
 Usage: python pipelines/t2ta_sample.py --config <config_file_path>
 """
@@ -59,7 +59,7 @@ class Config:
     return_both: bool  # True if both the reverse complement and original generated sequence should be used for downstream processing
     filter_min_length: int  # Minimum length of protein to keep during filtering
     filter_max_length: int  # Maximum length of protein to keep during filtering
-    filter_partial_bool: bool  # True if partial ORFs should be removed during downstream filtering, , only set to True if -p meta flag is not used
+    filter_partial_bool: bool  # True if partial ORFs should be removed during downstream filtering
     segmasker_threshold: float  # Proportion of protein sequence that can be low-complexity for sequence to be kept during filtering
     run_esm_fold: bool  # True if protein sequences should be folded during filtering
     plddt_threshold: float  # Minimum pLDDT value of folded protein sequence to keep during filtering

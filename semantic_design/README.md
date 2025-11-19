@@ -8,6 +8,7 @@ When run at scale, these pipelines can create (1) diversified variants of known 
 
 ```
 ./semantic_design/
+├── bin/                                            # Miscellaneous helper scripts 
 ├── environments/                                   # Environments for running all pipelines
 │   ├── semantic_design.yml                         # Environment for sampling and filtering with Evo
 │   ├── esmfold_multimer.yml                        # Environment for running t2ta_cofold pipeline
