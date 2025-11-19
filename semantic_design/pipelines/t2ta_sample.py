@@ -59,11 +59,17 @@ class Config:
     return_both: bool  # True if both the reverse complement and original generated sequence should be used for downstream processing
     filter_min_length: int  # Minimum length of protein to keep during filtering
     filter_max_length: int  # Maximum length of protein to keep during filtering
-    filter_partial_bool: bool  # True if partial ORFs should be removed during downstream filtering
+    filter_partial_bool: (
+        bool  # True if partial ORFs should be removed during downstream filtering
+    )
     segmasker_threshold: float  # Proportion of protein sequence that can be low-complexity for sequence to be kept during filtering
     run_esm_fold: bool  # True if protein sequences should be folded during filtering
-    plddt_threshold: float  # Minimum pLDDT value of folded protein sequence to keep during filtering
-    ptm_threshold: float  # Minimum pTM value of folded protein sequence to keep during filtering
+    plddt_threshold: (
+        float  # Minimum pLDDT value of folded protein sequence to keep during filtering
+    )
+    ptm_threshold: (
+        float  # Minimum pTM value of folded protein sequence to keep during filtering
+    )
 
     evo_gen_seqs_file_save_location: Path = field(init=False)
     all_seqs_fasta: Path = field(init=False)
@@ -87,7 +93,9 @@ class Config:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.segmasker_path = Path(self.segmasker_path)
 
-        self.evo_gen_seqs_file_save_location = self.output_dir / "generated_sequences.csv"
+        self.evo_gen_seqs_file_save_location = (
+            self.output_dir / "generated_sequences.csv"
+        )
         self.all_seqs_fasta = self.output_dir / "all_sequences.fasta"
         self.proteins_file = self.output_dir / "proteins.fasta"
         self.orfs_file = self.output_dir / "orfs.fasta"
@@ -169,7 +177,13 @@ def csv_to_cofold_fasta(
     """
     try:
         df = pd.read_csv(input_csv)
-        required_cols = [root_id_col, sequence1_col, sequence2_col, sequence1_id_col, sequence2_id_col]
+        required_cols = [
+            root_id_col,
+            sequence1_col,
+            sequence2_col,
+            sequence1_id_col,
+            sequence2_id_col,
+        ]
         for col in required_cols:
             if col not in df.columns:
                 raise KeyError(f"Column '{col}' not found in the CSV file.")
@@ -220,7 +234,9 @@ def load_config(config_file: str) -> Config:
         with open(config_file, "r") as f:
             config_dict = yaml.safe_load(f)
         if not isinstance(config_dict, dict):
-            raise ValueError(f"Configuration file must contain a YAML mapping: {config_file}")
+            raise ValueError(
+                f"Configuration file must contain a YAML mapping: {config_file}"
+            )
         return Config.from_dict(config_dict)
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found: {config_file}")
@@ -228,7 +244,9 @@ def load_config(config_file: str) -> Config:
         raise ValueError(f"Invalid YAML in configuration file: {config_file}") from exc
 
 
-def process_sequences(config: Config, model: StripedHyena, tokenizer: CharLevelTokenizer) -> None:
+def process_sequences(
+    config: Config, model: StripedHyena, tokenizer: CharLevelTokenizer
+) -> None:
     """Generate toxin/antitoxin sequences and run baseline QC.
 
     Args:
@@ -260,7 +278,9 @@ def process_sequences(config: Config, model: StripedHyena, tokenizer: CharLevelT
     )
     prompts, sequences, scores, ids = batch_data
     # Process sequences
-    final_sequences = get_rc(sequences, rc_truth=config.rc_truth, return_both=config.return_both)
+    final_sequences = get_rc(
+        sequences, rc_truth=config.rc_truth, return_both=config.return_both
+    )
 
     # Create FASTA files
     make_fasta(final_sequences, prompts, ids, config.all_seqs_fasta)
@@ -294,7 +314,10 @@ def process_folds(config: Config) -> pd.DataFrame:
     fold_stats = fold_proteins(config.filtered_proteins_file, config.output_folds_file)
     print("Protein folding complete", flush=True)
     filtered_folds = filter_proteins_by_threshold(
-        fold_stats, config.output_filtered_folds, config.plddt_threshold, config.ptm_threshold
+        fold_stats,
+        config.output_filtered_folds,
+        config.plddt_threshold,
+        config.ptm_threshold,
     )
 
     return filtered_folds
@@ -320,7 +343,9 @@ def main(config_file: str) -> None:
         process_sequences(config, model, tokenizer)
         if config.run_esm_fold:
             filtered_folds = process_folds(config)
-            protein_pairs = identify_unique_pairs(filtered_folds, config.shared_protein_pairs_csv)
+            protein_pairs = identify_unique_pairs(
+                filtered_folds, config.shared_protein_pairs_csv
+            )
             csv_to_cofold_fasta(config.shared_protein_pairs_csv, config.cofold_fasta)
         print("Pipeline completed successfully", flush=True)
     except Exception as e:
@@ -329,9 +354,13 @@ def main(config_file: str) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run sampling script with a configuration file.")
+    parser = argparse.ArgumentParser(
+        description="Run sampling script with a configuration file."
+    )
     parser.add_argument(
-        "--config", required=True, help="Path to the configuration file (e.g., path/to/config.yaml)"
+        "--config",
+        required=True,
+        help="Path to the configuration file (e.g., path/to/config.yaml)",
     )
     args = parser.parse_args()
     main(args.config)

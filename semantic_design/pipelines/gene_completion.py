@@ -21,10 +21,19 @@ from Bio import AlignIO, SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from semantic_design import read_prompts, model_load, sample_model, get_rc, run_prodigal, filter_protein_fasta
+from semantic_design import (
+    read_prompts,
+    model_load,
+    sample_model,
+    get_rc,
+    run_prodigal,
+    filter_protein_fasta,
+)
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -106,12 +115,16 @@ class Config:
         self.segmasker_path = Path(self.segmasker_path)
         self.mafft_path = Path(self.mafft_path)
 
-        self.evo_gen_seqs_file_save_location = self.output_dir / "generated_sequences.csv"
+        self.evo_gen_seqs_file_save_location = (
+            self.output_dir / "generated_sequences.csv"
+        )
         self.all_seqs_fasta = self.output_dir / "all_sequences.fasta"
         self.proteins_file = self.output_dir / "proteins.fasta"
         self.orfs_file = self.output_dir / "orfs.fasta"
         self.filtered_proteins_file = self.output_dir / "filtered_proteins.fasta"
-        self.msa_filtered_proteins_fasta = self.output_dir / "msa_filtered_proteins.fasta"
+        self.msa_filtered_proteins_fasta = (
+            self.output_dir / "msa_filtered_proteins.fasta"
+        )
         self.sequence_alignment_csv = self.output_dir / "sequence_alignment.csv"
         self.output_msa_csv = self.output_dir / "msa_results.csv"
         self.output_summary_csv = self.output_dir / "summary_statistics.csv"
@@ -195,7 +208,9 @@ def filter_orfs_by_prompt(
         None. The provided FASTA files are overwritten with filtered content.
     """
     if not Path(orfs_fasta).exists() or not Path(proteins_fasta).exists():
-        logger.warning("ORF/protein FASTA missing; skipping prompt-based ORF filtering.")
+        logger.warning(
+            "ORF/protein FASTA missing; skipping prompt-based ORF filtering."
+        )
         return
     if not Path(prompts_csv).exists():
         logger.warning("Prompts CSV missing; skipping prompt-based ORF filtering.")
@@ -229,7 +244,9 @@ def filter_orfs_by_prompt(
         filtered_orfs.append(record)
 
     if not filtered_orfs:
-        logger.warning("No ORFs contained their prompts; downstream outputs will be empty.")
+        logger.warning(
+            "No ORFs contained their prompts; downstream outputs will be empty."
+        )
 
     SeqIO.write(filtered_orfs, str(orfs_fasta), "fasta")
 
@@ -239,7 +256,10 @@ def filter_orfs_by_prompt(
         if record.id.split(" ")[0] in allowed_ids
     ]
     SeqIO.write(filtered_proteins, str(proteins_fasta), "fasta")
-    logger.info("Retained %d ORFs/proteins whose nucleotide sequence contains the prompt.", len(filtered_orfs))
+    logger.info(
+        "Retained %d ORFs/proteins whose nucleotide sequence contains the prompt.",
+        len(filtered_orfs),
+    )
 
 
 def build_reference_lookup(reference_fasta: Path) -> Dict[str, str]:
@@ -259,14 +279,18 @@ def build_reference_lookup(reference_fasta: Path) -> Dict[str, str]:
             record.id.lower(),
             description,
         }
-        candidates.update(token.strip("[](),") for token in description.replace("/", " ").split())
+        candidates.update(
+            token.strip("[](),") for token in description.replace("/", " ").split()
+        )
         for key in candidates:
             if key and key not in lookup:
                 lookup[key] = seq
     return lookup
 
 
-def calculate_sequence_identity(seq1: str, seq2: str, mafft_path: str = "mafft") -> Optional[float]:
+def calculate_sequence_identity(
+    seq1: str, seq2: str, mafft_path: str = "mafft"
+) -> Optional[float]:
     """
     Calculate sequence identity between two sequences using MAFFT.
 
@@ -293,7 +317,9 @@ def calculate_sequence_identity(seq1: str, seq2: str, mafft_path: str = "mafft")
         return None
 
 
-def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) -> Tuple[str, str, float]:
+def align_pair(
+    query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str
+) -> Tuple[str, str, float]:
     """
     Align a pair of sequences using MAFFT.
 
@@ -308,12 +334,16 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
             - Aligned second sequence (string)
             - Sequence identity (float between 0-1)
     """
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".fasta") as tmp_fasta:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".fasta"
+    ) as tmp_fasta:
         SeqIO.write([query_record, ref_record], tmp_fasta, "fasta")
         tmp_fasta_name = tmp_fasta.name
 
     try:
-        result = subprocess.run([mafft_path, tmp_fasta_name], capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            [mafft_path, tmp_fasta_name], capture_output=True, text=True, check=True
+        )
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as aligned_file:
             aligned_file.write(result.stdout)
             aligned_file_name = aligned_file.name
@@ -322,9 +352,13 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
         aligned_seq1, aligned_seq2 = alignment[0].seq, alignment[1].seq
 
         identity_count = sum(
-            1 for a, b in zip(aligned_seq1, aligned_seq2) if a != "-" and b != "-" and a == b
+            1
+            for a, b in zip(aligned_seq1, aligned_seq2)
+            if a != "-" and b != "-" and a == b
         )
-        aligned_length = sum(1 for a, b in zip(aligned_seq1, aligned_seq2) if a != "-" and b != "-")
+        aligned_length = sum(
+            1 for a, b in zip(aligned_seq1, aligned_seq2) if a != "-" and b != "-"
+        )
         identity = identity_count / aligned_length if aligned_length > 0 else 0
 
         return str(aligned_seq1), str(aligned_seq2), identity
@@ -346,29 +380,31 @@ def align_and_save_closest_match(
     mafft_path: str = "mafft",
 ) -> None:
     """
-    Align sequences and save closest matches using MAFFT.
+        Align sequences and save closest matches using MAFFT.
 
-    Args:
-        input_fasta: Path to input FASTA file containing query sequences
-        reference_fasta: Path to reference FASTA file containing sequences to match against
-        output_csv: Path to save alignment results CSV
-        filtered_fasta: Path to save filtered sequences FASTA
-        identity_threshold: Minimum percent identity threshold for keeping matches (0-100)
-        mafft_path: Path to MAFFT executable (default: "mafft")
+        Args:
+            input_fasta: Path to input FASTA file containing query sequences
+            reference_fasta: Path to reference FASTA file containing sequences to match against
+            output_csv: Path to save alignment results CSV
+            filtered_fasta: Path to save filtered sequences FASTA
+            identity_threshold: Minimum percent identity threshold for keeping matches (0-100)
+            mafft_path: Path to MAFFT executable (default: "mafft")
 
-)    Generated Files:
-        output_csv: CSV file with columns:
-            - query_id: ID of query sequence
-            - reference_id: ID of best matching reference sequence
-            - identity: Percent identity between query and reference
+    )    Generated Files:
+            output_csv: CSV file with columns:
+                - query_id: ID of query sequence
+                - reference_id: ID of best matching reference sequence
+                - identity: Percent identity between query and reference
 
-        filtered_fasta: FASTA file containing query sequences that had matches
-            above the identity threshold
+            filtered_fasta: FASTA file containing query sequences that had matches
+                above the identity threshold
 
-    Returns:
-        None. Artifacts are written to `output_csv` and `filtered_fasta`.
+        Returns:
+            None. Artifacts are written to `output_csv` and `filtered_fasta`.
     """
-    reference_seqs = {record.id: record for record in SeqIO.parse(reference_fasta, "fasta")}
+    reference_seqs = {
+        record.id: record for record in SeqIO.parse(reference_fasta, "fasta")
+    }
 
     results = []
     filtered_records = []
@@ -385,14 +421,22 @@ def align_and_save_closest_match(
                 best_match = ref_id
 
         if best_identity >= identity_threshold:
-            results.append({"query_id": record.id, "reference_id": best_match, "identity": best_identity})
+            results.append(
+                {
+                    "query_id": record.id,
+                    "reference_id": best_match,
+                    "identity": best_identity,
+                }
+            )
             filtered_records.append(record)
 
     pd.DataFrame(results).to_csv(output_csv, index=False)
     SeqIO.write(filtered_records, filtered_fasta, "fasta")
 
 
-def calculate_sequence_identity_w_prompt(seq1: str, seq2: str, mafft_path: str = "mafft") -> float:
+def calculate_sequence_identity_w_prompt(
+    seq1: str, seq2: str, mafft_path: str = "mafft"
+) -> float:
     """
     Calculate sequence identity between two sequences using MAFFT.
 
@@ -411,11 +455,18 @@ def calculate_sequence_identity_w_prompt(seq1: str, seq2: str, mafft_path: str =
     try:
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".fasta") as f:
             tmp_fasta = f.name
-            SeqIO.write([SeqRecord(Seq(seq1), id="seq1"), SeqRecord(Seq(seq2), id="seq2")], f, "fasta")
+            SeqIO.write(
+                [SeqRecord(Seq(seq1), id="seq1"), SeqRecord(Seq(seq2), id="seq2")],
+                f,
+                "fasta",
+            )
 
         try:
             result = subprocess.run(
-                [mafft_path, "--quiet", tmp_fasta], capture_output=True, text=True, check=True
+                [mafft_path, "--quiet", tmp_fasta],
+                capture_output=True,
+                text=True,
+                check=True,
             )
         except (subprocess.CalledProcessError, FileNotFoundError):
             return 0.0
@@ -455,7 +506,9 @@ def calculate_non_prompt_sequence_identity(
     if not input_aa or not reference_aa or not prompt_dna:
         return 0.0
 
-    prompt_dna_trimmed = prompt_dna[: -(len(prompt_dna) % 3)] if len(prompt_dna) % 3 != 0 else prompt_dna
+    prompt_dna_trimmed = (
+        prompt_dna[: -(len(prompt_dna) % 3)] if len(prompt_dna) % 3 != 0 else prompt_dna
+    )
     prompt_aa = str(Seq(prompt_dna_trimmed).translate())
     prompt_len = len(prompt_aa)
     if prompt_len == 0:
@@ -517,13 +570,24 @@ def create_summary_statistics(results_df: pd.DataFrame, output_path: Path) -> No
         results_df["Non_Prompt_Sequence_Identity"], errors="coerce"
     )
 
-    summary_stats = results_df.groupby(["Prompt", "Protein_Label", "Length_Percentage"]).agg(
+    summary_stats = results_df.groupby(
+        ["Prompt", "Protein_Label", "Length_Percentage"]
+    ).agg(
         avg_full_identity=("Full_Sequence_Identity", lambda x: x[x > 0].mean()),
         std_full_identity=("Full_Sequence_Identity", lambda x: x[x > 0].std()),
         count_full_identity=("Full_Sequence_Identity", lambda x: x[x > 0].count()),
-        avg_non_prompt_identity=("Non_Prompt_Sequence_Identity", lambda x: x[x > 0].mean()),
-        std_non_prompt_identity=("Non_Prompt_Sequence_Identity", lambda x: x[x > 0].std()),
-        count_non_prompt_identity=("Non_Prompt_Sequence_Identity", lambda x: x[x > 0].count()),
+        avg_non_prompt_identity=(
+            "Non_Prompt_Sequence_Identity",
+            lambda x: x[x > 0].mean(),
+        ),
+        std_non_prompt_identity=(
+            "Non_Prompt_Sequence_Identity",
+            lambda x: x[x > 0].std(),
+        ),
+        count_non_prompt_identity=(
+            "Non_Prompt_Sequence_Identity",
+            lambda x: x[x > 0].count(),
+        ),
         prompt_length=("Prompt_Length", "first"),
     )
 
@@ -590,7 +654,8 @@ def process_gene_completion_sequences(
 
             if not input_seq.startswith(prompt_aa):
                 logger.debug(
-                    "Skipping UUID %s because translated prompt does not match sequence start.", uuid_val
+                    "Skipping UUID %s because translated prompt does not match sequence start.",
+                    uuid_val,
                 )
                 continue
 
@@ -609,19 +674,25 @@ def process_gene_completion_sequences(
             ref_label = str(info_row["Protein_Label"].iloc[0]).lower()
             reference_seq = reference_lookup.get(ref_label)
             if not reference_seq:
-                logger.warning("No reference sequence found for label '%s'; skipping.", ref_label)
+                logger.warning(
+                    "No reference sequence found for label '%s'; skipping.", ref_label
+                )
                 continue
 
             result.Reference_Sequence = reference_seq
 
-            full_identity = calculate_sequence_identity(input_seq, reference_seq, mafft_path) or 0.0
+            full_identity = (
+                calculate_sequence_identity(input_seq, reference_seq, mafft_path) or 0.0
+            )
             non_prompt_identity = calculate_non_prompt_sequence_identity(
                 input_seq,
                 reference_seq,
                 prompt,
                 mafft_path,
             )
-            non_prompt_identity = non_prompt_identity if non_prompt_identity is not None else 0.0
+            non_prompt_identity = (
+                non_prompt_identity if non_prompt_identity is not None else 0.0
+            )
 
             result.Full_Sequence_Identity = full_identity
             result.Non_Prompt_Sequence_Identity = non_prompt_identity
@@ -674,7 +745,9 @@ def run_pipeline(config_path: Path) -> None:
     )
     prompts, sequences, scores, ids = batch_data
     # Generate and save FASTA files
-    final_sequences = get_rc(sequences, rc_truth=config.rc_truth, return_both=config.return_both)
+    final_sequences = get_rc(
+        sequences, rc_truth=config.rc_truth, return_both=config.return_both
+    )
     make_gene_completion_fasta(final_sequences, prompts, ids, config.all_seqs_fasta)
 
     # Process sequences
@@ -710,13 +783,19 @@ def run_pipeline(config_path: Path) -> None:
             mafft_path=config.mafft_path,
         )
     else:
-        logger.info("Skipping MSA and summary generation because run_msa is set to False.")
+        logger.info(
+            "Skipping MSA and summary generation because run_msa is set to False."
+        )
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run sampling script with a configuration file.")
+    parser = argparse.ArgumentParser(
+        description="Run sampling script with a configuration file."
+    )
     parser.add_argument(
-        "--config", required=True, help="Path to the configuration file (e.g., path/to/config.yaml)"
+        "--config",
+        required=True,
+        help="Path to the configuration file (e.g., path/to/config.yaml)",
     )
     args = parser.parse_args()
     run_pipeline(args.config)

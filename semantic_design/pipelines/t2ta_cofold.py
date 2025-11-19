@@ -197,14 +197,18 @@ def extract_pdockq_scores(config: CofoldConfig) -> None:
             if not line.startswith("ATOM"):
                 continue
             rec = parse_atm_record(line)
-            if rec["atm_name"] == "CB" or (rec["atm_name"] == "CA" and rec["res_name"] == "GLY"):
+            if rec["atm_name"] == "CB" or (
+                rec["atm_name"] == "CA" and rec["res_name"] == "GLY"
+            ):
                 chain_coords[rec["chain"]].append(list(rec["coords"]))
                 res_id = f"{rec['chain']}{rec['res_no']}"
                 plddt_dict.setdefault(res_id, []).append(rec["B"])
         plddt = np.array([np.mean(vals) for vals in plddt_dict.values()])
         return chain_coords, plddt
 
-    def calc_pdockq(chain_coords: Dict[str, List[List[float]]], plddt: np.ndarray) -> Tuple[float, float, int, float]:
+    def calc_pdockq(
+        chain_coords: Dict[str, List[List[float]]], plddt: np.ndarray
+    ) -> Tuple[float, float, int, float]:
         chains = list(chain_coords.keys())
         if len(chains) < 2 or plddt.size == 0:
             return 0.0, 0.0, 0, 0.0

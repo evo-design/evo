@@ -35,7 +35,9 @@ from semantic_design import (
     filter_protein_fasta,
 )
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -113,12 +115,16 @@ class Config:
         self.segmasker_path = Path(self.segmasker_path)
         self.mafft_path = Path(self.mafft_path)
 
-        self.evo_gen_seqs_file_save_location = self.output_dir / "generated_sequences.csv"
+        self.evo_gen_seqs_file_save_location = (
+            self.output_dir / "generated_sequences.csv"
+        )
         self.all_seqs_fasta = self.output_dir / "all_sequences.fasta"
         self.proteins_file = self.output_dir / "proteins.fasta"
         self.orfs_file = self.output_dir / "orfs.fasta"
         self.filtered_proteins_file = self.output_dir / "filtered_proteins.fasta"
-        self.msa_filtered_proteins_fasta = self.output_dir / "msa_filtered_proteins.fasta"
+        self.msa_filtered_proteins_fasta = (
+            self.output_dir / "msa_filtered_proteins.fasta"
+        )
         self.sequence_alignment_csv = self.output_dir / "sequence_alignment.csv"
         self.output_msa_csv = self.output_dir / "msa_results.csv"
         self.output_summary_csv = self.output_dir / "summary_statistics.csv"
@@ -146,7 +152,9 @@ def load_config(config_path: Path) -> Config:
         raise ValueError(f"Invalid YAML in configuration file: {config_path}") from exc
 
 
-def calculate_sequence_identity(seq1: str, seq2: str, mafft_path: str = "mafft") -> Optional[float]:
+def calculate_sequence_identity(
+    seq1: str, seq2: str, mafft_path: str = "mafft"
+) -> Optional[float]:
     """
     Calculate sequence identity between two sequences using MAFFT.
 
@@ -175,7 +183,9 @@ def calculate_sequence_identity(seq1: str, seq2: str, mafft_path: str = "mafft")
         return None
 
 
-def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) -> Tuple[str, str, float]:
+def align_pair(
+    query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str
+) -> Tuple[str, str, float]:
     """
     Align a pair of sequences using MAFFT.
 
@@ -191,12 +201,16 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
             - Sequence identity (float between 0-1)
     """
     aligned_file_name = None
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".fasta") as tmp_fasta:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".fasta"
+    ) as tmp_fasta:
         SeqIO.write([query_record, ref_record], tmp_fasta, "fasta")
         tmp_fasta_name = tmp_fasta.name
 
     try:
-        result = subprocess.run([mafft_path, tmp_fasta_name], capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            [mafft_path, tmp_fasta_name], capture_output=True, text=True, check=True
+        )
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as aligned_file:
             aligned_file.write(result.stdout)
             aligned_file_name = aligned_file.name
@@ -205,9 +219,13 @@ def align_pair(query_record: SeqRecord, ref_record: SeqRecord, mafft_path: str) 
         aligned_seq1, aligned_seq2 = alignment[0].seq, alignment[1].seq
 
         identity_count = sum(
-            1 for a, b in zip(aligned_seq1, aligned_seq2) if a != "-" and b != "-" and a == b
+            1
+            for a, b in zip(aligned_seq1, aligned_seq2)
+            if a != "-" and b != "-" and a == b
         )
-        aligned_length = sum(1 for a, b in zip(aligned_seq1, aligned_seq2) if a != "-" and b != "-")
+        aligned_length = sum(
+            1 for a, b in zip(aligned_seq1, aligned_seq2) if a != "-" and b != "-"
+        )
         identity = identity_count / aligned_length if aligned_length > 0 else 0
 
         return str(aligned_seq1), str(aligned_seq2), identity
@@ -253,7 +271,9 @@ def align_and_save_closest_match(
         filtered_fasta: FASTA file containing query sequences that had matches
             above the identity threshold
     """
-    reference_seqs = {record.id: record for record in SeqIO.parse(reference_fasta, "fasta")}
+    reference_seqs = {
+        record.id: record for record in SeqIO.parse(reference_fasta, "fasta")
+    }
 
     results = []
     filtered_records = []
@@ -270,7 +290,13 @@ def align_and_save_closest_match(
                 best_match = ref_id
 
         if best_identity >= identity_threshold:
-            results.append({"query_id": record.id, "reference_id": best_match, "identity": best_identity})
+            results.append(
+                {
+                    "query_id": record.id,
+                    "reference_id": best_match,
+                    "identity": best_identity,
+                }
+            )
             filtered_records.append(record)
 
     pd.DataFrame(results).to_csv(output_csv, index=False)
@@ -306,7 +332,13 @@ def create_summary_statistics(results_df: pd.DataFrame, output_path: Path) -> No
         .reset_index()
     )
 
-    summary_stats.columns = ["Prompt", "Expected_Response", "avg_identity", "std_identity", "count"]
+    summary_stats.columns = [
+        "Prompt",
+        "Expected_Response",
+        "avg_identity",
+        "std_identity",
+        "count",
+    ]
 
     numeric_cols = ["avg_identity", "std_identity"]
     summary_stats[numeric_cols] = summary_stats[numeric_cols].round(2)
@@ -381,15 +413,21 @@ def process_operon_sequences(
                 continue
             prompt = prompt_match["Prompt"].iloc[0]
 
-            response_match = prompt_response_map[prompt_response_map["Prompt"] == prompt]
+            response_match = prompt_response_map[
+                prompt_response_map["Prompt"] == prompt
+            ]
             if response_match.empty:
-                logger.warning(f"No matching expected response found for prompt: {prompt}")
+                logger.warning(
+                    f"No matching expected response found for prompt: {prompt}"
+                )
                 continue
             expected_response = response_match["Expected_Response"].iloc[0]
 
             reference_seq = reference_sequences.get(expected_response)
             if not reference_seq:
-                logger.warning(f"No reference sequence found for expected response: {expected_response}")
+                logger.warning(
+                    f"No reference sequence found for expected response: {expected_response}"
+                )
                 continue
 
             best_identity = -1.0
@@ -467,7 +505,9 @@ def run_pipeline(config_file: str) -> None:
     )
     prompts, sequences, scores, ids = batch_data
 
-    final_sequences = get_rc(sequences, rc_truth=config.rc_truth, return_both=config.return_both)
+    final_sequences = get_rc(
+        sequences, rc_truth=config.rc_truth, return_both=config.return_both
+    )
     make_fasta(final_sequences, prompts, ids, config.all_seqs_fasta)
 
     run_prodigal(config.all_seqs_fasta, config.proteins_file, config.orfs_file)
@@ -499,15 +539,21 @@ def run_pipeline(config_file: str) -> None:
             mafft_path=config.mafft_path,
         )
     else:
-        logger.info("Skipping MSA and summary generation because run_msa is set to False.")
+        logger.info(
+            "Skipping MSA and summary generation because run_msa is set to False."
+        )
 
     logger.info("Pipeline execution completed successfully")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run sampling script with a configuration file.")
+    parser = argparse.ArgumentParser(
+        description="Run sampling script with a configuration file."
+    )
     parser.add_argument(
-        "--config", required=True, help="Path to the configuration file (e.g., path/to/config.yaml)"
+        "--config",
+        required=True,
+        help="Path to the configuration file (e.g., path/to/config.yaml)",
     )
     args = parser.parse_args()
     run_pipeline(args.config)

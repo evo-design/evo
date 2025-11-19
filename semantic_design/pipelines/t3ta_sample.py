@@ -125,9 +125,13 @@ class Config:
         if self.rna_sequence_filter_script:
             self.rna_sequence_filter_script = Path(self.rna_sequence_filter_script)
         if self.rna_structure_filter_reference_csv:
-            self.rna_structure_filter_reference_csv = Path(self.rna_structure_filter_reference_csv)
+            self.rna_structure_filter_reference_csv = Path(
+                self.rna_structure_filter_reference_csv
+            )
         if self.rna_sequence_filter_reference_csv:
-            self.rna_sequence_filter_reference_csv = Path(self.rna_sequence_filter_reference_csv)
+            self.rna_sequence_filter_reference_csv = Path(
+                self.rna_sequence_filter_reference_csv
+            )
         if self.hmmscan_pfam_db_path:
             self.hmmscan_pfam_db_path = Path(self.hmmscan_pfam_db_path)
         if self.cmscan_model_paths:
@@ -135,7 +139,9 @@ class Config:
         if isinstance(self.cmscan_allowed_families, str):
             self.cmscan_allowed_families = [self.cmscan_allowed_families]
 
-        self.evo_gen_seqs_file_save_location = self.output_dir / "generated_sequences.csv"
+        self.evo_gen_seqs_file_save_location = (
+            self.output_dir / "generated_sequences.csv"
+        )
         self.all_seqs_fasta = self.output_dir / "all_sequences.fasta"
         self.proteins_file = self.output_dir / "proteins.fasta"
         self.orfs_file = self.output_dir / "orfs.fasta"
@@ -189,7 +195,9 @@ def load_generated_sequences(csv_path: Path) -> Dict[str, str]:
     return dict(zip(df.iloc[:, 0].astype(str), df.iloc[:, 2].astype(str)))
 
 
-def run_tandem_repeat_finder(sequence: str, root_id: str, trf_path: Path) -> pd.DataFrame:
+def run_tandem_repeat_finder(
+    sequence: str, root_id: str, trf_path: Path
+) -> pd.DataFrame:
     """Execute TRF on a single DNA sequence and parse the stdout table.
 
     Args:
@@ -370,7 +378,9 @@ def fold_trfs(trf_df: pd.DataFrame, output_csv: Path) -> pd.DataFrame:
     return fold_df
 
 
-def get_at_pairs(rna_fold_df: pd.DataFrame, filtered_folds: pd.DataFrame, output_csv: Path) -> pd.DataFrame:
+def get_at_pairs(
+    rna_fold_df: pd.DataFrame, filtered_folds: pd.DataFrame, output_csv: Path
+) -> pd.DataFrame:
     """Merge RNA folds with protein records to produce TA pair candidates.
 
     Args:
@@ -388,7 +398,9 @@ def get_at_pairs(rna_fold_df: pd.DataFrame, filtered_folds: pd.DataFrame, output
 
     rna_fold_df["Has Hairpin"] = rna_fold_df["Hairpins"].apply(lambda hp: bool(hp))
     hairpin_df = rna_fold_df[rna_fold_df["Has Hairpin"]].copy()
-    filtered_folds["Root ID"] = filtered_folds["Evo Sequence ID"].astype(str).str.split("_").str[0]
+    filtered_folds["Root ID"] = (
+        filtered_folds["Evo Sequence ID"].astype(str).str.split("_").str[0]
+    )
     merged = hairpin_df.merge(
         filtered_folds,
         left_on="Evo Sequence ID",
@@ -400,7 +412,9 @@ def get_at_pairs(rna_fold_df: pd.DataFrame, filtered_folds: pd.DataFrame, output
     return merged
 
 
-def visualize_rna_structures(reference_csv: Path, rna_fold_df: pd.DataFrame) -> Tuple[List[np.ndarray], List[str]]:
+def visualize_rna_structures(
+    reference_csv: Path, rna_fold_df: pd.DataFrame
+) -> Tuple[List[np.ndarray], List[str]]:
     """Compute flattened ViennaRNA probability features for analysis.
 
     Args:
@@ -414,7 +428,9 @@ def visualize_rna_structures(reference_csv: Path, rna_fold_df: pd.DataFrame) -> 
         return [], []
     reference = pd.read_csv(reference_csv)
     combined = pd.concat([rna_fold_df, reference], ignore_index=True, sort=False)
-    combined = combined[combined["RNA Sequence"].apply(lambda seq: len(str(seq)) <= 500)]
+    combined = combined[
+        combined["RNA Sequence"].apply(lambda seq: len(str(seq)) <= 500)
+    ]
 
     flattened = []
     labels = []
@@ -486,7 +502,9 @@ def filter_folded_trfs(
     if config.rna_require_hairpin:
         mask &= fold_trf_df["Hairpins"].apply(_hairpin_exists)
     if config.rna_minimum_mfe is not None:
-        mask &= fold_trf_df["MFE"].apply(lambda val: pd.notna(val) and float(val) <= config.rna_minimum_mfe)
+        mask &= fold_trf_df["MFE"].apply(
+            lambda val: pd.notna(val) and float(val) <= config.rna_minimum_mfe
+        )
     if config.rna_require_all_bases:
         mask &= fold_trf_df["DNA Sequence"].apply(_has_all_bases)
 
@@ -524,7 +542,9 @@ def write_rna_candidates_fasta(candidate_table: pd.DataFrame, fasta_path: Path) 
             fasta_path.unlink()
 
 
-def prepare_rna_candidate_table(trf_df: pd.DataFrame, fold_trf_df: pd.DataFrame, output_csv: Path) -> pd.DataFrame:
+def prepare_rna_candidate_table(
+    trf_df: pd.DataFrame, fold_trf_df: pd.DataFrame, output_csv: Path
+) -> pd.DataFrame:
     """Standardize TRF+RNA fold outputs into the schema used by downstream filters.
 
     Args:
@@ -549,10 +569,13 @@ def prepare_rna_candidate_table(trf_df: pd.DataFrame, fold_trf_df: pd.DataFrame,
         "Alignment Score": "Alignment_score",
         "Repeat Sequence": "Sequence",
     }
-    trf_standard = trf_df.rename(columns={k: v for k, v in rename_map.items() if k in trf_df.columns}).copy()
+    trf_standard = trf_df.rename(
+        columns={k: v for k, v in rename_map.items() if k in trf_df.columns}
+    ).copy()
     if "Sequence_ID" not in trf_standard.columns:
         trf_standard["Sequence_ID"] = trf_standard.apply(
-            lambda row: f"{row['Root ID']}_{int(row['Start'])}_{int(row['End'])}", axis=1
+            lambda row: f"{row['Root ID']}_{int(row['Start'])}_{int(row['End'])}",
+            axis=1,
         )
 
     merged = trf_standard.merge(
@@ -626,7 +649,9 @@ def run_rna_structure_filter(candidates_csv: Path, config: Config) -> Set[str]:
     if not script_path or not script_path.exists():
         return set()
 
-    target_csv = config.rna_structure_filter_reference_csv or config.rna_structures_reference_csv
+    target_csv = (
+        config.rna_structure_filter_reference_csv or config.rna_structures_reference_csv
+    )
     if not target_csv or not target_csv.exists():
         return set()
 
@@ -680,7 +705,9 @@ def run_rna_sequence_filter(candidates_csv: Path, config: Config) -> Set[str]:
     if not script_path or not script_path.exists():
         return set()
 
-    reference_csv = config.rna_sequence_filter_reference_csv or config.rna_structures_reference_csv
+    reference_csv = (
+        config.rna_sequence_filter_reference_csv or config.rna_structures_reference_csv
+    )
     if not reference_csv or not reference_csv.exists():
         return set()
 
@@ -709,7 +736,9 @@ def run_rna_sequence_filter(candidates_csv: Path, config: Config) -> Set[str]:
     results = pd.read_csv(config.rna_sequence_matches_csv)
     if "comp_root_id" not in results.columns:
         return set()
-    filtered = results[results.get("identity_percent", 0) >= config.rna_sequence_filter_min_identity]
+    filtered = results[
+        results.get("identity_percent", 0) >= config.rna_sequence_filter_min_identity
+    ]
     return set(filtered["comp_root_id"].astype(str))
 
 
@@ -751,7 +780,10 @@ def run_hmmscan_filter(config: Config) -> pd.DataFrame:
     Returns:
         DataFrame of filtered hmmscan hits; may be empty if no matches survive.
     """
-    if not config.hmmscan_pfam_db_path or not Path(config.hmmscan_pfam_db_path).exists():
+    if (
+        not config.hmmscan_pfam_db_path
+        or not Path(config.hmmscan_pfam_db_path).exists()
+    ):
         return pd.DataFrame()
     if not Path(config.filtered_proteins_file).exists():
         return pd.DataFrame()
@@ -772,15 +804,20 @@ def run_hmmscan_filter(config: Config) -> pd.DataFrame:
     allowed_names = load_allowed_pfam_names(config.pfam_allowed_names)
     filtered_df = hits_df
     if allowed_names:
+
         def _normalize(value: Any) -> str:
             return str(value).strip().strip('"')
 
         normalized = {_normalize(name) for name in allowed_names}
-        filtered_df = hits_df[hits_df["pfam_name"].apply(lambda name: _normalize(name) in normalized)]
+        filtered_df = hits_df[
+            hits_df["pfam_name"].apply(lambda name: _normalize(name) in normalized)
+        ]
 
     if config.pfam_evalue_threshold is not None and not filtered_df.empty:
         filtered_df = filtered_df[
-            filtered_df["e_value"].apply(lambda val: pd.notna(val) and float(val) <= config.pfam_evalue_threshold)
+            filtered_df["e_value"].apply(
+                lambda val: pd.notna(val) and float(val) <= config.pfam_evalue_threshold
+            )
         ]
 
     filtered_df.to_csv(config.hmmscan_hits_csv, index=False)
@@ -791,7 +828,9 @@ def load_allowed_families(config: Config) -> Set[str]:
     """Load acceptable cmscan target family names from config list/CSV."""
     allowed: Set[str] = set()
     if config.cmscan_allowed_families:
-        allowed.update({str(name).strip().lower() for name in config.cmscan_allowed_families})
+        allowed.update(
+            {str(name).strip().lower() for name in config.cmscan_allowed_families}
+        )
     return allowed
 
 
@@ -896,7 +935,10 @@ def run_cmscan_filter(candidate_table: pd.DataFrame, config: Config) -> pd.DataF
         return hits
 
     seq_to_root = dict(
-        zip(candidate_table["Sequence_ID"].astype(str), candidate_table["Root ID"].astype(str))
+        zip(
+            candidate_table["Sequence_ID"].astype(str),
+            candidate_table["Root ID"].astype(str),
+        )
     )
     hits["Root ID"] = hits["sequence_id"].map(seq_to_root)
     hits = hits.dropna(subset=["Root ID"])
@@ -929,9 +971,13 @@ def run_pipeline(config_path: Path) -> None:
         force_prompt_threshold=2,
     )
 
-    final_sequences = get_rc(sequences, rc_truth=config.rc_truth, return_both=config.return_both)
+    final_sequences = get_rc(
+        sequences, rc_truth=config.rc_truth, return_both=config.return_both
+    )
     make_fasta(final_sequences, prompts, ids, str(config.all_seqs_fasta))
-    run_prodigal(str(config.all_seqs_fasta), str(config.proteins_file), str(config.orfs_file))
+    run_prodigal(
+        str(config.all_seqs_fasta), str(config.proteins_file), str(config.orfs_file)
+    )
 
     filter_protein_fasta(
         str(config.proteins_file),
@@ -943,7 +989,9 @@ def run_pipeline(config_path: Path) -> None:
         config.segmasker_threshold,
     )
 
-    fold_stats = fold_proteins(str(config.filtered_proteins_file), str(config.output_folds_file))
+    fold_stats = fold_proteins(
+        str(config.filtered_proteins_file), str(config.output_folds_file)
+    )
     if config.run_esm_fold:
         filtered_folds = filter_proteins_by_threshold(
             fold_stats,
@@ -957,16 +1005,22 @@ def run_pipeline(config_path: Path) -> None:
     if isinstance(filtered_folds, pd.DataFrame) and not filtered_folds.empty:
         filtered_folds = filtered_folds.copy()
         if "Root ID" not in filtered_folds.columns:
-            filtered_folds["Root ID"] = filtered_folds["Evo Sequence ID"].astype(str).str.split("_").str[0]
+            filtered_folds["Root ID"] = (
+                filtered_folds["Evo Sequence ID"].astype(str).str.split("_").str[0]
+            )
 
-    trf_df = get_tandem_repeats(filtered_folds, config.evo_gen_seqs_file_save_location, config)
+    trf_df = get_tandem_repeats(
+        filtered_folds, config.evo_gen_seqs_file_save_location, config
+    )
     fold_trf_df = fold_trfs(trf_df, config.rna_fold_csv)
     fold_trf_df, trf_root_ids = filter_folded_trfs(trf_df, fold_trf_df, config)
     if trf_root_ids:
         trf_df = trf_df[trf_df["Root ID"].astype(str).isin(trf_root_ids)].copy()
         trf_df.to_csv(config.output_trf_csv, index=False)
         if isinstance(filtered_folds, pd.DataFrame) and not filtered_folds.empty:
-            filtered_folds = filtered_folds[filtered_folds["Root ID"].astype(str).isin(trf_root_ids)].copy()
+            filtered_folds = filtered_folds[
+                filtered_folds["Root ID"].astype(str).isin(trf_root_ids)
+            ].copy()
     else:
         empty_columns = list(trf_df.columns) if isinstance(trf_df, pd.DataFrame) else []
         trf_df = pd.DataFrame(columns=empty_columns)
@@ -977,7 +1031,9 @@ def run_pipeline(config_path: Path) -> None:
     ta_pairs_df = get_at_pairs(fold_trf_df, filtered_folds, config.ta_pairs_csv)
     visualize_rna_structures(config.rna_structures_reference_csv, fold_trf_df)
 
-    candidate_table = prepare_rna_candidate_table(trf_df, fold_trf_df, config.rna_candidates_csv)
+    candidate_table = prepare_rna_candidate_table(
+        trf_df, fold_trf_df, config.rna_candidates_csv
+    )
     if not candidate_table.empty:
         write_rna_candidates_fasta(candidate_table, config.rna_candidates_fasta)
         rna_structure_hits = run_rna_structure_filter(config.rna_candidates_csv, config)
@@ -994,24 +1050,34 @@ def run_pipeline(config_path: Path) -> None:
 
     hmmscan_root_ids: Set[str] = set()
     if not hmmscan_hits.empty:
-        hmmscan_root_ids = set(hmmscan_hits["sequence_id"].astype(str).str.split("_").str[0])
+        hmmscan_root_ids = set(
+            hmmscan_hits["sequence_id"].astype(str).str.split("_").str[0]
+        )
 
     cmscan_root_ids: Set[str] = set()
     if isinstance(cmscan_hits, pd.DataFrame) and not cmscan_hits.empty:
         cmscan_root_ids = set(cmscan_hits["Root ID"].astype(str))
 
-    keep_root_ids = rna_structure_hits.union(rna_sequence_hits).union(hmmscan_root_ids).union(cmscan_root_ids)
+    keep_root_ids = (
+        rna_structure_hits.union(rna_sequence_hits)
+        .union(hmmscan_root_ids)
+        .union(cmscan_root_ids)
+    )
 
     if isinstance(filtered_folds, pd.DataFrame) and not filtered_folds.empty:
         if keep_root_ids:
-            final_candidates = filtered_folds[filtered_folds["Root ID"].astype(str).isin(keep_root_ids)].copy()
+            final_candidates = filtered_folds[
+                filtered_folds["Root ID"].astype(str).isin(keep_root_ids)
+            ].copy()
         else:
             final_candidates = pd.DataFrame(columns=filtered_folds.columns)
         final_candidates.to_csv(config.final_candidates_csv, index=False)
 
     if not ta_pairs_df.empty:
         if keep_root_ids:
-            ta_pairs_filtered = ta_pairs_df[ta_pairs_df["Root ID"].astype(str).isin(keep_root_ids)].copy()
+            ta_pairs_filtered = ta_pairs_df[
+                ta_pairs_df["Root ID"].astype(str).isin(keep_root_ids)
+            ].copy()
         else:
             ta_pairs_filtered = ta_pairs_df.iloc[0:0].copy()
         ta_pairs_filtered.to_csv(config.ta_pairs_csv, index=False)
@@ -1020,7 +1086,11 @@ def run_pipeline(config_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Type III toxin-antitoxin sampling pipeline.")
-    parser.add_argument("--config", required=True, help="Path to configuration file (YAML).")
+    parser = argparse.ArgumentParser(
+        description="Run Type III toxin-antitoxin sampling pipeline."
+    )
+    parser.add_argument(
+        "--config", required=True, help="Path to configuration file (YAML)."
+    )
     args = parser.parse_args()
     run_pipeline(Path(args.config))
