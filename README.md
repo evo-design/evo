@@ -77,24 +77,6 @@ conda env create -f environment.yml
 conda activate evo-design
 ```
 
-### Troubleshooting
-
-If you are using [Numpy](https://numpy.org/) versions > 2.2, you may encounter the following error:
-
-```bash
-ValueError: The binary mode of fromstring is removed, use frombuffer instead
-```
-
-To fix this, modify [`tokenizer.py`](https://github.com/togethercomputer/stripedhyena/blob/main/stripedhyena/tokenizer.py#L157) at line 157 in your local installation of [StripedHyena](https://github.com/togethercomputer/stripedhyena) as shown: 
-
-```bash
-# Replace this:
-return list(np.fromstring(text, dtype=np.uint8))
-
-# With this:
-return list(np.frombuffer(text.encode(), dtype=np.uint8))
-```
-
 ## Usage
 
 Below is an example of how to download Evo and use it locally through the Python API.
