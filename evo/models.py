@@ -1,11 +1,13 @@
+import json
+import os
 import pkgutil
 import re
-from transformers import AutoConfig, AutoModelForCausalLM
+
 import yaml
 
 from stripedhyena.utils import dotdict
 from stripedhyena.model import StripedHyena
-from stripedhyena.tokenizer import CharLevelTokenizer
+from .tokenizer import CharLevelTokenizer
 
 
 MODEL_NAMES = [
@@ -76,35 +78,63 @@ def load_checkpoint(
 ):
     """
     Load checkpoint from HuggingFace and place it into SH model.
+
+    Loads safetensors directly via huggingface_hub + safetensors to avoid
+    compatibility issues with different transformers versions (e.g., v5
+    breaks tied-weight handling for evo-1 models).
     """
+    from huggingface_hub import snapshot_download
+    from safetensors.torch import load_file
 
     # Map model name to HuggingFace model name.
 
     hf_model_name = HF_MODEL_NAME_MAP[model_name]
+    revision = '1.1_fix' if re.match(r'evo-1-.*-base', model_name) else 'main'
 
-    # Load model config.
+    # Download / locate cached model files.
 
-    model_config = AutoConfig.from_pretrained(
+    model_dir = snapshot_download(
         hf_model_name,
-        trust_remote_code=True,
-        revision='1.1_fix' if re.match(r'evo-1-.*-base', model_name) else 'main',
-    )
-    model_config.use_cache = True
-
-    # Load model.
-
-    model = AutoModelForCausalLM.from_pretrained(
-        hf_model_name,
-        config=model_config,
-        trust_remote_code=True,
-        revision='1.1_fix' if re.match(r'evo-1-.*-base', model_name) else 'main',
+        revision=revision,
     )
 
-    # Load model state dict & cleanup.
+    # Load safetensors weights (multi-shard or single-shard).
 
-    state_dict = model.backbone.state_dict()
-    del model
-    del model_config
+    index_path = os.path.join(model_dir, 'model.safetensors.index.json')
+    single_path = os.path.join(model_dir, 'model.safetensors')
+
+    raw_state_dict = {}
+    if os.path.exists(index_path):
+        with open(index_path) as f:
+            index = json.load(f)
+        shard_files = sorted(set(index['weight_map'].values()))
+        for shard_file in shard_files:
+            shard_path = os.path.join(model_dir, shard_file)
+            raw_state_dict.update(load_file(shard_path))
+    elif os.path.exists(single_path):
+        raw_state_dict = load_file(single_path)
+    else:
+        raise FileNotFoundError(
+            f'No safetensors files found in {model_dir}. '
+            f'Expected model.safetensors.index.json or model.safetensors.'
+        )
+
+    # Strip 'backbone.' prefix from keys (HF checkpoint wraps the backbone).
+
+    state_dict = {}
+    for key, value in raw_state_dict.items():
+        if key.startswith('backbone.'):
+            state_dict[key[len('backbone.'):]] = value
+        else:
+            state_dict[key] = value
+    del raw_state_dict
+
+    # Handle tied embeddings: if unembed.weight is missing, copy from
+    # embedding_layer.weight. This is needed for evo-1 models whose
+    # checkpoints only store the embedding weight once.
+
+    if 'unembed.weight' not in state_dict and 'embedding_layer.weight' in state_dict:
+        state_dict['unembed.weight'] = state_dict['embedding_layer.weight']
 
     # Load SH config.
 

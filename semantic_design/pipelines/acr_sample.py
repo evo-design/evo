@@ -21,7 +21,7 @@ from transformers import (
     EsmForProteinFolding,
 )
 from stripedhyena.model import StripedHyena
-from stripedhyena.tokenizer import CharLevelTokenizer
+from evo.tokenizer import CharLevelTokenizer
 
 from semantic_design import (
     read_prompts,

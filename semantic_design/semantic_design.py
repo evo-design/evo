@@ -20,7 +20,7 @@ import os
 import torch
 
 from stripedhyena.model import StripedHyena
-from stripedhyena.tokenizer import CharLevelTokenizer
+from evo.tokenizer import CharLevelTokenizer
 from evo import Evo
 from evo.generation import generate
 

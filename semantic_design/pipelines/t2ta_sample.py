@@ -33,7 +33,7 @@ from semantic_design import (
     filter_proteins_by_threshold,
 )
 from stripedhyena.model import StripedHyena
-from stripedhyena.tokenizer import CharLevelTokenizer
+from evo.tokenizer import CharLevelTokenizer
 
 
 @dataclass

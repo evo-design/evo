@@ -5,7 +5,7 @@ from typing import List, Tuple, Union
 
 from stripedhyena.model import StripedHyena
 from stripedhyena.sample import sample
-from stripedhyena.tokenizer import CharLevelTokenizer
+from .tokenizer import CharLevelTokenizer
 
 from .scoring import logits_to_logprobs, prepare_batch
 

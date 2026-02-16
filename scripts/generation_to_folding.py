@@ -14,7 +14,7 @@ from transformers import (
     set_seed
 )
 
-from stripedhyena.tokenizer import CharLevelTokenizer
+from evo.tokenizer import CharLevelTokenizer
 
 
 def main():

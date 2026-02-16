@@ -1,4 +1,6 @@
 stripedhyena==0.2.2
+huggingface-hub
+safetensors
 biopython
 pandas
 triton
