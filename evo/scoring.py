@@ -3,7 +3,7 @@ import torch
 from typing import List, Tuple
 
 from stripedhyena.model import StripedHyena
-from stripedhyena.tokenizer import CharLevelTokenizer
+from .tokenizer import CharLevelTokenizer
 
 
 def prepare_batch(
