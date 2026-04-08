@@ -55,6 +55,18 @@ conda install -c nvidia cuda-nvcc cuda-cudart-dev
 conda install -c conda-forge flash-attn=2.7.4
 ```
 
+#### Known working setup
+
+Evo depends on FlashAttention-2 and GPU support may vary depending on hardware and system configuration. The following configuration is known to work reliably:
+
+- FlashAttention version `<= 2.7.4.post0`
+- PyTorch `>= 2.7.0` and `< 2.8.0a0` (compatible with FlashAttention 2.7.4)
+- NVIDIA GPU with CUDA support (see FlashAttention documentation for supported architectures)
+
+We recommend using a fresh conda environment and installing PyTorch before other dependencies to avoid compatibility issues with `flash-attn`.
+
+If you installed Evo between **November 15 and December 16, 2024**, please upgrade to `evo-model>=0.3` to avoid a known inference bug (see News section above).
+
 ### Installation
 
 You can install Evo using `pip`
@@ -76,6 +88,36 @@ One of our [example scripts](scripts/), demonstrating how to go from generating 
 conda env create -f environment.yml
 conda activate evo-design
 ```
+
+### Common setup issues
+
+Below are some common installation and runtime issues reported by users, along with possible causes and checks.
+
+#### `NameError: MHA is not defined`
+
+This error is typically related to FlashAttention or Triton installation issues.
+
+- Ensure FlashAttention is installed correctly and is within the supported version range (`<= 2.7.4.post0`)
+- Verify that PyTorch is installed before FlashAttention
+- Check that your GPU and CUDA setup are compatible with FlashAttention
+
+#### `AssertionError: rotary_emb is not installed`
+
+This usually indicates a missing or incompatible dependency in the attention stack.
+
+- Confirm that FlashAttention and Triton are installed correctly
+- Ensure your environment was created cleanly rather than mixing dependencies across environments
+
+#### Hugging Face loading errors (e.g. `transformers_modules...tokenizer`)
+
+Some users have reported module loading errors when using Hugging Face integration.
+
+- Ensure `trust_remote_code=True` is set when loading models
+- Use the same `model_name` and `revision` consistently across `AutoConfig` and `AutoModel`
+- Verify that your `transformers` version supports remote code loading
+- If errors persist, try clearing your local Hugging Face cache and re-downloading the model
+
+If you encounter additional issues, please check the [issue tracker](https://github.com/evo-design/evo/issues) for similar reports.
 
 ## Usage
 
@@ -145,6 +187,12 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 ```
 
+#### Notes on Hugging Face usage
+
+- Set `trust_remote_code=True` when loading Evo models
+- Use the same `model_name` and `revision` consistently across `AutoConfig`, `AutoModel`, and tokenizer loading
+- Ensure your `transformers` version supports custom model code
+- If you encounter unexpected import or configuration errors, try clearing your local Hugging Face cache and re-downloading the model
 
 ## Together API
 
