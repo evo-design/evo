@@ -22,7 +22,7 @@ See `examples/patch_hf_trainer.py` for the full 30-line example.
 ## Why QLoRA alone didn't save memory last time
 
 In the earlier `QLoRA + DDP` attempt, QLoRA showed no memory reduction at 50k
-context. The reason:
+context. The reason (speculated):
 
 - QLoRA only quantizes `torch.nn.Linear` weights to 4-bit.
 - It does **not** touch:
@@ -34,13 +34,9 @@ context. The reason:
   3.5 GiB helps the base weights, but that 12 GiB ceiling is unaffected, so the
   observed peak barely moved.
 
-The long-context patches in this PR (`patch_compute_filter` +
-`patch_parallel_iir_rfft` + `apply_activation_ckpt`) remove that ceiling. Once
-the ceiling is gone, QLoRA's weight savings actually show up in the total.
 
-**Recommendation:** Apply the long-context patches first. QLoRA is optional on
-top and is most useful when you want extra headroom (larger batch, longer
-context, or evaluation memory spikes).
+
+**Recommendation:** Apply the long-context patches first. 
 
 ## What each patch does
 
@@ -51,7 +47,7 @@ context, or evaluation memory spikes).
 | `apply_activation_ckpt(model)` | Non-reentrant activation checkpointing on `AttentionBlock` / `ParallelGatedConvBlock` | Drops activation memory to `~sqrt(L)` scaling |
 | `cast_model_to_bf16(model)` | Casts every fp param + buffer (incl. `poles`, `residues`) to bf16 | Halves non-quantised weight memory; avoids the fp32-vs-bf16 FSDP flatten error |
 | `cast_non_quantized_model_to_bf16(model)` | Same as above, but preserves bnb 4-bit / 8-bit params | Same benefit under QLoRA |
-| `quantize_linear_layers_for_qlora(model, quant_type="nf4")` | Swaps every `nn.Linear` with `bnb.nn.Linear4bit` | ~10 GiB saved per GPU for the base weights |
+| `quantize_linear_layers_for_qlora(model, quant_type="nf4")` | Swaps every `nn.Linear` with `bnb.nn.Linear4bit` | 
 
 ## Small compatibility shims (also in this PR)
 
@@ -148,5 +144,4 @@ torch.cuda.reset_peak_memory_stats()
 print("peak GiB:", torch.cuda.max_memory_allocated() / 1024**3)
 ```
 
-At 50k context, peak should land in the low 20s GiB on 40 GB cards with
-long-context patches on; without them it OOMs around 40 GiB.
+Tested peak allocation locally: 36GB
